@@ -1,0 +1,45 @@
+# JReleaser configuration for the release of one client (clients/<language>): the GitHub release
+# only. The package itself is published by the language's own tooling in release-extension.yml
+# (npm with provenance, PyPI trusted publishing, cargo publish; Go needs only the tag), so there
+# is no deploy and nothing to sign here.
+#
+# A template like jreleaser.yml: .github/scripts/jreleaser-config.sh renders it per extension.
+# Provided by the workflow: JRELEASER_PROJECT_VERSION, -PextensionPath=<kinds>/<name>,
+# JRELEASER_GITHUB_TOKEN, JRELEASER_DRY_RUN; target/jreleaser/release-notes.md (the changelog).
+project:
+  name: __PROJECT_NAME__
+  description: __PROJECT_DESCRIPTION__
+  longDescription: __PROJECT_LONG_DESCRIPTION__
+  links:
+    homepage: 'https://github.com/kthoms/operaton-extensions/tree/main/__EXTENSION_PATH__'
+    bugTracker: 'https://github.com/kthoms/operaton-extensions/issues'
+    license: 'https://github.com/kthoms/operaton-extensions/blob/main/LICENSE'
+  inceptionYear: '2026'
+  license: Apache-2.0
+  authors:
+    - Operaton Extensions contributors
+  vendor: Operaton Extensions
+  tags:
+    - 'operaton'
+    - 'bpmn'
+    - 'external task client'
+
+release:
+  github:
+    owner: kthoms
+    name: operaton-extensions
+    tagName: '{{extensionPath}}/v{{projectVersion}}'
+    releaseName: '{{extensionPath}} {{projectVersion}}'
+    skipTag: true
+    overwrite: false
+    sign: false
+    draft: false
+    prerelease:
+      enabled: false
+    issues:
+      enabled: false
+    changelog:
+      external: 'target/jreleaser/release-notes.md'
+
+signing:
+  active: NEVER
