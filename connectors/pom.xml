@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>kafka</module>
     <!-- extensions:end -->
   </modules>
 </project>
