@@ -141,6 +141,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: Download Maven (retried; the distribution download is occasionally flaky)
+        if: steps.plan.outputs.build == 'maven'
+        run: for attempt in 1 2 3 4 5; do ./mvnw -B -q -v && exit 0; echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10)); done; exit 1
       - name: Set up Node.js 22
         if: steps.plan.outputs.build == 'npm'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
