@@ -1,0 +1,8 @@
+kind: client
+name: python
+title: Python External Task Client
+description: External task client for Operaton in Python (PyPI operaton-external-task-client) with sync and asyncio workers, typed variables, filters, retries, BPMN errors and back-off.
+build: python
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

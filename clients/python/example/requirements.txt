@@ -1,0 +1,2 @@
+# the released client; from a checkout use:  pip install -e ..
+operaton-external-task-client
