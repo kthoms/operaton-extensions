@@ -6,6 +6,10 @@ Licensed under the Apache License, Version 2.0.
 Third-party code
 ================
 
-No third-party source code is included yet. Each port of code from another
-project is listed here with its origin and license, see
-docs/conventions/licensing-and-attribution.md.
+Each port of code from another project is listed here with its origin and license,
+see docs/conventions/licensing-and-attribution.md.
+
+- CIB seven connect/ai-agent
+  https://github.com/cibseven/cibseven/tree/main/connect/ai-agent
+  Apache-2.0, Copyright CIB software GmbH and/or licensed to CIB software GmbH
+  Used in: connectors/ai-llm (AgentLoop, LongText)

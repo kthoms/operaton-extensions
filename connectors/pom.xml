@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>ai-llm</module>
     <!-- extensions:end -->
   </modules>
 </project>

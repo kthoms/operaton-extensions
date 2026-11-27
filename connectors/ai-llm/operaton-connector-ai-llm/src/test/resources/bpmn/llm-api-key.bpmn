@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="definitions" targetNamespace="http://operaton.org/extensions/test">
+  <bpmn:process id="llm-api-key" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="prompt"/>
+    <bpmn:serviceTask id="prompt" name="Prompt with key">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>llm-prompt</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="userPrompt">Hi</operaton:inputParameter>
+            <operaton:inputParameter name="apiKey">${key}</operaton:inputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="prompt" targetRef="end"/>
+    <bpmn:endEvent id="end"/>
+  </bpmn:process>
+</bpmn:definitions>
