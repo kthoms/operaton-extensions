@@ -119,7 +119,7 @@ BASE_BRANCH=develop
 SHIP_STATE=
 # see ship's ship.env and its prose slots: every gate command is ship's; all empty at install (follow-ups).
 QUALITY_GATE_CMDS=
-# local: TEST_CMD runs in the Step 4 gate once it is filled; until then (no tests exist) the review says so.
+# none: no unit tests exist yet (the review says so). Switch to local when ship's TEST_CMD is filled (follow-up), or ci once CI runs them.
 UNIT_TESTS_IN_REVIEW=none
 PROTECTED_FILES=see .claude/protected-files.txt
 DOCS_ALLOWLIST=(\.md$|\.txt$|^docs/|(^|/)CHANGELOG)
