@@ -25,7 +25,7 @@ DOCS-ROOT              — docs/
 DETAILS-FILE           — docs/claude-details.md
 TODO-FILE              — none
 MODEL-TIERS            — haiku / sonnet / opus
-HOOK-LIST              — none installed yet
+HOOK-LIST              — the hooks pack in .claude/hooks/ (protected-file-guard.sh, commit-check.sh, pending-question-reprint.sh, review-nudge.sh; values in .claude/hooks/hooks.env), wired in .claude/settings.json, warn-only for now
 PROTECTED-FILES        — .claude/protected-files.txt
 TENANT-KEY             — not applicable (single-tenant library, no data store)
 RECOMMENDATION-MODE    — on-request
@@ -48,6 +48,12 @@ Read back your numbered rules and your domain-accuracy rule at the start of ever
 then say something like:
 > "Rules acknowledged: #0 GSD — now, #1 Fail loudly, and the domain invariant is non-negotiable:
 > Every extension declares the Operaton minor versions it supports, and its build verifies each one (one check per minor, x.y.0 included, at that minor's latest patch); a version that is not verified is never claimed."
+
+Verify your hooks are installed, wired and answering: from the repository's top folder, run
+`bash .claude/hooks/hooks-check.sh` (it checks the scripts of the hooks pack in `.claude/hooks/` (`protected-file-guard.sh`, `commit-check.sh`, `pending-question-reprint.sh`, `review-nudge.sh`; values in `.claude/hooks/hooks.env`), wired in `.claude/settings.json`, warn-only for now, nothing else). Add "Hooks: verified." to the
+read-back only when it exits 0.
+Anything else: say "Hooks: NOT verified" with its FAIL lines (or the missing script), and see
+`docs/claude-details.md#context-optimization-hooks` to reinstall from the download.
 
 If you catch yourself deferring, saying "pre-existing," or treating a bug as someone else's
 problem — stop and re-read these rules.
@@ -670,6 +676,8 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
 - **Documentation tree:** define your own top-level folders (setup, architecture, requirements,
   testing, session summaries) and point to an index doc:
   `docs/claude-details.md#documentation-structure`.
+- **Hooks:** the hooks pack in `.claude/hooks/` (`protected-file-guard.sh`, `commit-check.sh`, `pending-question-reprint.sh`, `review-nudge.sh`; values in `.claude/hooks/hooks.env`), wired in `.claude/settings.json`, warn-only for now; what each does, the session-start check and how to reinstall at
+  `docs/claude-details.md#context-optimization-hooks`.
 - **Issue tracker conventions:** GitHub issues of `kthoms/operaton-extensions`, no
   project board: starting an issue assigns it and comments the branch; finishing closes it through
   the PR that fixes it; 3+ items → one batched operation, not a loop:
