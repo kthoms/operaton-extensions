@@ -1,0 +1,8 @@
+kind: client
+name: __NAME__
+title: __TITLE__
+description: TODO one sentence — an Operaton external task client for this language.
+build: TODO npm | python | go | cargo
+compatibility: [2.2]
+since: 2.2
+status: incubating

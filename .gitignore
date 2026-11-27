@@ -1,0 +1,28 @@
+# Maven
+target/
+.flattened-pom.xml
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+# OS
+.DS_Store
+# Node / Python / Rust (clients)
+node_modules/
+dist/
+coverage/
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+clients/rust/target/
+# Local env
+.env
+.env.local
+# Claude Code local settings
+.claude/settings.local.json
