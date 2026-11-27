@@ -1,0 +1,7 @@
+# zizmor configuration (https://docs.zizmor.sh/configuration/)
+rules:
+  use-trusted-publishing:
+    ignore:
+      # crates.io trusted publishing needs an existing crate: the first `cargo publish` of the Rust
+      # client uses CARGO_REGISTRY_TOKEN. Switch to trusted publishing after the first release.
+      - release-extension.yml
