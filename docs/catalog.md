@@ -27,7 +27,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 
 | Language | Package | What it does | Operaton | Status |
 |---|---|---|---|---|
-| | | | | |
+| Rust | [`operaton-external-task-client`](../clients/rust/README.md) | Async (tokio) external task client: long polling, typed variables, filters, retries, BPMN errors, back-off, graceful shutdown | 2.0, 2.1, 2.2 | incubating |
 
 Entries are added with each extension, in the pull request that introduces it.
 
@@ -55,7 +55,6 @@ contributor picks one, opens an issue, and moves it to the tables above with the
 | client | `js` | TypeScript external task client | camunda/camunda-external-task-client-js (Apache-2.0): port with attribution |
 | client | `python` | Python external task client | camunda-community-hub/camunda-external-task-client-python3 (Apache-2.0): port with attribution |
 | client | `go` | Go external task client | citilinkru/camunda-client-go (MIT): port, keep the MIT notice |
-| client | `rust` | Rust external task client | fresh |
 
 ### Next candidates
 
