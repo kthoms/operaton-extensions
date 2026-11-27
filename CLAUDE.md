@@ -459,7 +459,14 @@ switch with "frugal", "max parallel" or "parallel --cap=N".
 | Architectural decisions | strongest tier | n/a |
 | Implementation from an approved plan | mid tier | the plan touches a halting gate, a protected file or shared library code |
 | Research / open-ended debugging | strongest tier | n/a |
-| `<roster agent>` (one row per generated agent) | its default tier | its escalate-when rule, from `bootstrap-agents` |
+| `plugin-engineer` | mid tier | a change to engine command execution, transactions or a non-public engine API |
+| `connector-engineer` | mid tier | a new connector's error, retry or credentials model |
+| `test-engineer` | mid tier | a critical-path change (root `pom.xml`, release workflows, JReleaser), or a flaky or concurrent test |
+| `release-engineer` | mid tier | a change to the release workflow, release branches or publishing |
+| `docs-writer` | cheapest tier | the doc states a contract, an install procedure or example code others run (→ mid tier) |
+| `license-reviewer` | mid tier | a direct copy or port from another project (→ strongest tier) |
+| `security-reviewer` | strongest tier | n/a |
+| `code-reviewer` | strongest tier | n/a |
 
 Tier words: cheapest / mid / strongest (`bootstrap-agents` calls the same tiers cheapest /
 standard / high-reasoning). A roster row's model is the default in that agent's file. The dispatcher overrides it at launch
