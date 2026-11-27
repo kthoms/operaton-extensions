@@ -6,6 +6,8 @@ Licensed under the Apache License, Version 2.0.
 Third-party code
 ================
 
-No third-party source code is included yet. Each port of code from another
-project is listed here with its origin and license, see
-docs/conventions/licensing-and-attribution.md.
+camunda-external-task-client-js
+  URL:     https://github.com/camunda/camunda-external-task-client-js
+  License: Apache-2.0 (Copyright 2018-2025 Camunda Services GmbH)
+  Files:   clients/js/src/{client,task-service,variables,file,engine-service,errors,auth}.ts
+           (ported to TypeScript and fetch, see clients/js/NOTICE)
