@@ -83,7 +83,7 @@ jobs:
     permissions:
       contents: write
       id-token: write # npm provenance and PyPI trusted publishing in release-extension.yml
-    uses: ./.github/workflows/release-extension.yml
+    uses: $/.github/workflows/release-extension.yml
     with:
       extension: ${{ matrix.extension }}
       ref: ${{ matrix.branch }}

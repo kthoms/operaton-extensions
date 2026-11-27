@@ -39,7 +39,7 @@ list_extensions() {
     git ls-tree -r --name-only "$ref" -- $EXTENSION_KINDS 2>/dev/null
   else
     git ls-files --cached --others --exclude-standard -- $EXTENSION_KINDS 2>/dev/null
-  fi | grep -E "^($kinds_re)/[^/]+/" | cut -d/ -f1-2 | sort -u
+  fi | { grep -E "^($kinds_re)/[^/]+/" || true; } | cut -d/ -f1-2 | sort -u
 }
 
 # Reads a manifest key; lists come back comma-joined. Empty output and status 3 when missing.
