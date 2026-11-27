@@ -361,6 +361,8 @@ waive it, with a reason, logged. Ship/checkpoint gate on the sentinel that pass 
 closed. Until your roster has a test-engineer agent, dispatch a general-purpose agent with your
 test-engineer prompt as its lens; the gate is never skipped for lack of a roster entry. Trigger
 list, sentinel hashing and override logging: `docs/claude-details.md#test-thoroughness-gate`.
+Not switched on yet: the critical paths in `.claude/critical-paths.txt` are off until their
+follow-up ("turn on the end-to-end gate").
 
 **Auto Review:** Once your plan-review skill is installed and its code-review companion is live,
 run it after formulating any plan: the multi-domain review for high-stakes plans and a lighter
