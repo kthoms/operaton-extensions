@@ -78,7 +78,7 @@ else
   readme_ok=1
   IFS='|' read -r -a REQ <<<"$REQUIRED_HEADINGS"
   for h in "${REQ[@]}"; do
-    pos="$(printf '%s\n' "$HEADINGS" | grep -nxF "$h" | head -1 | cut -d: -f1)"
+    pos="$(printf '%s\n' "$HEADINGS" | { grep -nxF "$h" || true; } | head -1 | cut -d: -f1)"
     if [ -z "$pos" ]; then
       err "README.md: heading '## $h' is missing"
       readme_ok=0
