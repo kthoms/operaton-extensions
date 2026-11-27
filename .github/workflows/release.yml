@@ -1,0 +1,195 @@
+# Minor releases: merging develop into main releases every extension changed since its last tag.
+# See docs/conventions/repository-design.md#minor-releases-from-main-releaseyml.
+#
+#   detect   the extensions to release (release-info.sh extensions-to-release) and their plan
+#   release  one release-extension.yml call per extension (matrix)
+#   develop  on develop: each released extension's next minor development version, its
+#            CHANGELOG.md, and the Dependabot entry for its new release branch
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: build and prepare everything, push and publish nothing'
+        type: boolean
+        required: true
+        default: true
+      extensions:
+        description: 'Extensions to release instead of the detected ones (comma- or space-separated paths, e.g. connectors/kafka)'
+        type: string
+        required: false
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    name: Detect extensions to release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      extensions: ${{ steps.detect.outputs.extensions }}
+      plans: ${{ steps.detect.outputs.plans }}
+      dry_run: ${{ steps.detect.outputs.dry_run }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Detect
+        id: detect
+        env:
+          OVERRIDE: ${{ inputs.extensions }}
+          DRY_RUN: ${{ inputs.dry_run == true }}
+          EVENT_REF: ${{ github.ref }}
+        run: |
+          if [ "$EVENT_REF" != refs/heads/main ]; then
+            echo "::error::Minor releases run on main only (got $EVENT_REF)"
+            exit 1
+          fi
+          if [ -n "$OVERRIDE" ]; then
+            LIST=""
+            for ext in $(echo "$OVERRIDE" | tr ',' ' '); do
+              ext="${ext%/}"
+              echo "$ext" | grep -Eq '^(plugins|connectors|clients)/[a-z0-9]+(-[a-z0-9]+)*$' && [ -f "$ext/extension.yml" ] ||
+                { echo "::error::'$ext' is not an extension on main"; exit 1; }
+              LIST="$LIST $ext"
+            done
+            # shellcheck disable=SC2086
+            EXTENSIONS="$(jq -cn '$ARGS.positional | unique' --args $LIST)"
+          else
+            EXTENSIONS="$(.github/scripts/release-info.sh extensions-to-release HEAD)"
+          fi
+          PLANS="$(for ext in $(echo "$EXTENSIONS" | jq -r '.[]'); do
+            .github/scripts/release-info.sh plan "$ext" main |
+              jq -R 'capture("^(?<k>[a-z_]+)=(?<v>.*)$") | {(.k): .v}' | jq -s --arg extension "$ext" 'add + {extension: $extension}'
+          done | jq -cs .)"
+          {
+            echo "extensions=$EXTENSIONS"
+            echo "plans=$PLANS"
+            echo "dry_run=$DRY_RUN"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Extensions to release (dry run: $DRY_RUN)"
+            echo
+            echo "$PLANS" | jq -r 'if length == 0 then "_none_" else .[] | "- `\(.extension)` \(.version) (`\(.tag)`)" end'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Release
+    needs: detect
+    if: needs.detect.outputs.extensions != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        extension: ${{ fromJSON(needs.detect.outputs.extensions) }}
+    permissions:
+      contents: write
+      id-token: write # npm provenance and PyPI trusted publishing in release-extension.yml
+    uses: ./.github/workflows/release-extension.yml
+    with:
+      extension: ${{ matrix.extension }}
+      ref: main
+      dry_run: ${{ needs.detect.outputs.dry_run == 'true' }}
+    secrets:
+      GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME }}
+      MAVENCENTRAL_PASSWORD: ${{ secrets.MAVENCENTRAL_PASSWORD }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # Runs after all releases, also when some of them failed: every extension whose tag now exists
+  # is prepared on develop. Reusable-workflow outputs of a matrix cannot be told apart, so the
+  # released extensions are recognised by their tags.
+  develop:
+    name: Prepare develop
+    needs:
+      - detect
+      - release
+    if: >-
+      always() && needs.detect.result == 'success' && needs.detect.outputs.extensions != '[]'
+      && needs.detect.outputs.dry_run != 'true' && needs.release.result != 'cancelled'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push to develop
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false # pushes go through .github/scripts/git-remote.sh
+
+      - name: Next development versions and Dependabot entries
+        id: prepare
+        env:
+          PLANS: ${{ needs.detect.outputs.plans }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          PREPARED=""
+          for row in $(echo "$PLANS" | jq -r '.[] | [.extension, .tag, .version, .release_branch, .next_develop_version] | join("|")'); do
+            IFS='|' read -r EXT TAG VERSION RELEASE_BRANCH NEXT <<< "$row"
+            if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+              echo "::warning::$TAG does not exist: $EXT was not released, develop is left unchanged for it"
+              continue
+            fi
+            if [ ! -f "$EXT/extension.yml" ]; then
+              echo "::warning::$EXT no longer exists on develop"
+              continue
+            fi
+            if [ -n "$NEXT" ]; then
+              CURRENT="$(.github/scripts/release-info.sh version "$EXT")"
+              CURRENT_RELEASE="$(.github/scripts/release-info.sh release-version "$CURRENT")"
+              # only move forward: develop may already hold a higher (e.g. major) version
+              if [ "$(printf '%s\n%s\n' "$CURRENT_RELEASE" "$VERSION" | sort -V | tail -1)" = "$VERSION" ]; then
+                .github/scripts/set-version.sh "$EXT" "$NEXT" >/dev/null
+              else
+                echo "$EXT: develop holds $CURRENT, newer than $VERSION; version left as is"
+              fi
+            fi
+            if git cat-file -e "$TAG:$EXT/CHANGELOG.md" 2>/dev/null; then
+              git checkout -q "$TAG" -- "$EXT/CHANGELOG.md"
+            fi
+            .github/scripts/dependabot-release-entry.sh "$EXT" "$RELEASE_BRANCH"
+            git add -u -- "$EXT" .github/dependabot.yml
+            [ ! -f "$EXT/CHANGELOG.md" ] || git add -- "$EXT/CHANGELOG.md"
+            PREPARED="$PREPARED $EXT@$VERSION"
+          done
+          if git diff --cached --quiet; then
+            echo "Nothing to commit on develop"
+            exit 0
+          fi
+          git commit -q -m "chore(release): prepare next development versions" -m "Released:$PREPARED"
+          echo "commit=true" >> "$GITHUB_OUTPUT"
+          git show --stat HEAD
+
+      - name: Push to develop
+        if: steps.prepare.outputs.commit == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for attempt in 1 2 3; do
+            if .github/scripts/git-remote.sh push HEAD:refs/heads/develop; then exit 0; fi
+            echo "develop moved, rebasing (attempt $attempt)"
+            .github/scripts/git-remote.sh fetch develop
+            git rebase -q origin/develop
+          done
+          echo "::error::Could not push to develop"
+          exit 1

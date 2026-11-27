@@ -80,6 +80,11 @@ find "$TARGET" -depth -name '*__*' | while read -r path; do
 done
 find "$TARGET" -type f | while read -r file; do substitute "$file"; done
 
+if [[ "$KIND" == client ]]; then
+  case "$NAME" in js) BUILD=npm ;; python) BUILD=python ;; go) BUILD=go ;; rust) BUILD=cargo ;; esac
+  sed -i.bak "s/^build: .*/build: $BUILD/" "$TARGET/extension.yml" && rm -f "$TARGET/extension.yml.bak"
+fi
+
 if [[ "$KIND" != client ]]; then
   AGG="$ROOT/$KINDS/pom.xml"
   if ! grep -q "<module>$NAME</module>" "$AGG"; then
