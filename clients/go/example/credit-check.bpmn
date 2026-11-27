@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_CreditCheck"
+                  targetNamespace="http://operaton.org/examples/credit-check">
+  <bpmn:process id="credit-check" name="Credit check" isExecutable="true" operaton:historyTimeToLive="30">
+    <bpmn:startEvent id="LoanRequested" name="Loan requested">
+      <bpmn:outgoing>Flow_Requested</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_Requested" sourceRef="LoanRequested" targetRef="CheckCredit"/>
+    <bpmn:serviceTask id="CheckCredit" name="Check credit" operaton:type="external" operaton:topic="credit-check">
+      <bpmn:incoming>Flow_Requested</bpmn:incoming>
+      <bpmn:outgoing>Flow_Checked</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Checked" sourceRef="CheckCredit" targetRef="Approved"/>
+    <bpmn:exclusiveGateway id="Approved" name="Credit approved?" default="Flow_No">
+      <bpmn:incoming>Flow_Checked</bpmn:incoming>
+      <bpmn:outgoing>Flow_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Yes" name="yes" sourceRef="Approved" targetRef="LoanGranted">
+      <bpmn:conditionExpression>${approved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_No" name="no" sourceRef="Approved" targetRef="LoanDeclined"/>
+    <bpmn:endEvent id="LoanGranted" name="Loan granted">
+      <bpmn:incoming>Flow_Yes</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="LoanDeclined" name="Loan declined">
+      <bpmn:incoming>Flow_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="CustomerUnknown" name="Customer unknown" attachedToRef="CheckCredit">
+      <bpmn:outgoing>Flow_Unknown</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorDef_Unknown" errorRef="Error_UnknownCustomer"/>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_Unknown" sourceRef="CustomerUnknown" targetRef="RequestRejected"/>
+    <bpmn:endEvent id="RequestRejected" name="Request rejected">
+      <bpmn:incoming>Flow_Unknown</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:error id="Error_UnknownCustomer" name="Unknown customer" errorCode="UNKNOWN_CUSTOMER"/>
+  <bpmndi:BPMNDiagram id="Diagram_CreditCheck">
+    <bpmndi:BPMNPlane id="Plane_CreditCheck" bpmnElement="credit-check">
+      <bpmndi:BPMNShape id="Shape_LoanRequested" bpmnElement="LoanRequested">
+        <dc:Bounds x="152" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="131" y="145" width="79" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_CheckCredit" bpmnElement="CheckCredit">
+        <dc:Bounds x="250" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Approved" bpmnElement="Approved" isMarkerVisible="true">
+        <dc:Bounds x="415" y="95" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="397" y="65" width="86" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_LoanGranted" bpmnElement="LoanGranted">
+        <dc:Bounds x="532" y="52" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="516" y="95" width="69" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_LoanDeclined" bpmnElement="LoanDeclined">
+        <dc:Bounds x="532" y="152" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="515" y="195" width="71" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_RequestRejected" bpmnElement="RequestRejected">
+        <dc:Bounds x="382" y="252" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="360" y="295" width="81" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_CustomerUnknown" bpmnElement="CustomerUnknown">
+        <dc:Bounds x="282" y="142" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="226" y="185" width="47" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Requested" bpmnElement="Flow_Requested">
+        <di:waypoint x="188" y="120"/><di:waypoint x="250" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Checked" bpmnElement="Flow_Checked">
+        <di:waypoint x="350" y="120"/><di:waypoint x="415" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Yes" bpmnElement="Flow_Yes">
+        <di:waypoint x="440" y="95"/><di:waypoint x="440" y="70"/><di:waypoint x="532" y="70"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="447" y="73" width="18" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_No" bpmnElement="Flow_No">
+        <di:waypoint x="440" y="145"/><di:waypoint x="440" y="170"/><di:waypoint x="532" y="170"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="448" y="153" width="15" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Unknown" bpmnElement="Flow_Unknown">
+        <di:waypoint x="300" y="178"/><di:waypoint x="300" y="270"/><di:waypoint x="382" y="270"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

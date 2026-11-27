@@ -6,6 +6,12 @@ Licensed under the Apache License, Version 2.0.
 Third-party code
 ================
 
-No third-party source code is included yet. Each port of code from another
-project is listed here with its origin and license, see
-docs/conventions/licensing-and-attribution.md.
+Each port of code from another project is listed here with its origin and
+license, see docs/conventions/licensing-and-attribution.md.
+
+camunda-client-go
+  https://github.com/citilinkru/camunda-client-go
+  License: MIT, Copyright (c) 2019 Citilink LLC
+  Used in: clients/go (subscription.go, variable.go, task.go), reworked
+  The MIT copyright and permission notice is kept in clients/go/NOTICE and
+  clients/go/LICENSE-THIRD-PARTY.
