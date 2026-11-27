@@ -1,0 +1,46 @@
+# Auto-merge configuration, read by .github/workflows/auto-merge.yml.
+#
+# A PR is merged (squash) when it matches one rule, every check is green and no review thread is
+# open. Whatever the rules say, only PRs targeting `develop` or a `release/**` branch are ever
+# merged; PRs to `main` (which release) never are.
+#
+# Rule fields (all given criteria must hold; a rule needs at least one of labels/includes/title):
+#   author:        GitHub login of the PR author (e.g. 'dependabot[bot]')
+#   base:          list of base branch patterns ('*' wildcard, e.g. 'release/**' or 'release/*')
+#   labels:        labels that must all be present on the PR
+#   includes:      title patterns ('*' wildcard, substring match); one must match
+#   excludes:      title patterns; none may match (overrides includes)
+#   title:         a single title pattern ('*' wildcard, substring match)
+#   update-types:  for Dependabot titles "... from X to Y": allowed SemVer update types
+#                  (patch, minor, major). Grouped titles without versions are accepted, since
+#                  dependabot.yml already restricts the update types per branch.
+
+auto-merge-rules:
+  # Dependabot Maven updates on develop (dependabot.yml ignores major updates)
+  - author: 'dependabot[bot]'
+    base: ['develop']
+    labels: ['dependencies:maven']
+    includes: ['*']
+    update-types: ['patch', 'minor']
+
+  # Dependabot GitHub Actions updates on develop
+  - author: 'dependabot[bot]'
+    base: ['develop']
+    labels: ['dependencies:github-actions']
+    includes: ['*']
+    update-types: ['patch', 'minor']
+
+  # Dependabot patch updates on release branches (any ecosystem)
+  - author: 'dependabot[bot]'
+    base: ['release/**']
+    labels: ['dependencies']
+    includes: ['*']
+    update-types: ['patch']
+
+  # Agent / maintainer PRs explicitly marked for auto-merge
+  - author: 'kthoms'
+    base: ['develop']
+    labels: ['auto-merge']
+
+# Note: client ecosystems (npm, pip, gomod, cargo) on develop and Dependabot PRs on
+#       compatibility/* (new Operaton patches) are not auto-merged: they need a human look.

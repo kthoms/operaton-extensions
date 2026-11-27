@@ -1,0 +1,172 @@
+# Dependabot configuration. See docs/conventions/repository-design.md#dependency-updates-dependabot
+#
+# - develop: Maven (minor and patch) for parent/, every Java extension and its example; npm, pip,
+#   gomod and cargo for the clients and their examples; GitHub Actions.
+# - compatibility/*: patch updates of the pinned Operaton version only, so each folder always
+#   names the newest patch of its minor (new minors come from compatibility-new-minor.yml).
+# - release/** branches: one entry per branch, patch updates only, appended by the release
+#   workflow between the markers at the end of this file. Do not edit that block by hand.
+#
+# Labels: auto-merge.yml relies on "dependencies:<ecosystem>" (see .github/auto-merge.config.yml).
+
+version: 2
+updates:
+  # ---------------------------------------------------------------- develop: Java
+  - package-ecosystem: "maven"
+    directories:
+      - "/parent"
+      - "/plugins/*"
+      - "/plugins/*/example"
+      - "/connectors/*"
+      - "/connectors/*/example"
+    target-branch: "develop"
+    schedule:
+      interval: "daily"
+      time: "02:30"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "dependencies:maven"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # operaton.version follows the newest supported minor; a new minor is a deliberate change
+      # (compatibility-new-minor.yml + the extensions' manifests), so only patches here.
+      - dependency-name: "org.operaton.bpm:*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    groups:
+      maven-plugins:
+        patterns:
+          - "org.apache.maven.plugins:*"
+          - "org.codehaus.mojo:*"
+          - "com.diffplug.spotless:*"
+          - "org.jacoco:*"
+      spring-boot:
+        patterns:
+          - "org.springframework.boot:*"
+      testcontainers:
+        patterns:
+          - "org.testcontainers:*"
+
+  # ---------------------------------------------------------------- compatibility/*: patches only
+  - package-ecosystem: "maven"
+    directories:
+      - "/compatibility/*"
+    target-branch: "develop"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "compatibility"
+    allow:
+      - dependency-name: "org.operaton.bpm:operaton-bom"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  # ---------------------------------------------------------------- develop: clients
+  - package-ecosystem: "npm"
+    directories:
+      - "/clients/js"
+      - "/clients/js/example"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "dependencies:npm"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      npm:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    directories:
+      - "/clients/python"
+      - "/clients/python/example"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "dependencies:pip"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      pip:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directories:
+      - "/clients/go"
+      - "/clients/go/example"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "dependencies:gomod"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      gomod:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "cargo"
+    directories:
+      - "/clients/rust"
+      - "/clients/rust/example"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "dependencies:cargo"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      cargo:
+        patterns:
+          - "*"
+
+  # ---------------------------------------------------------------- develop: GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "dependencies:github-actions"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # ---------------------------------------------------------------- release branches
+  # One entry per release/<kinds>/<name>/<major>.<minor>.x branch: patch updates of that
+  # extension's folder only. Appended by .github/scripts/dependabot-release-entry.sh.
+  # >>> release branches (managed by release workflow) >>>
+  # <<< release branches <<<
