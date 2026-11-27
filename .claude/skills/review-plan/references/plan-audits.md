@@ -104,12 +104,12 @@ PARALLEL EXECUTION MAP:
 
 ### Extension completeness (this repository)
 
-**Trigger:** the plan adds or changes an extension under `plugins/` or `connectors/`.
+**Trigger:** the plan adds or changes an extension under `plugins/`, `connectors/` or `clients/`.
 
 Source: CLAUDE.md "Project Rules" (layout, lifecycle, compatibility, sources, autonomy).
 
-1. **Compatibility matrix** — does the plan declare the Operaton minor versions the extension supports and add a CI matrix entry per minor (x.y.0 included, at its latest patch) with tests on a real embedded engine? Missing → CRITICAL (the domain invariant).
-2. **Self-contained module** — does the extension depend on nothing in the repository but the parent POM, and follow the module layout in `docs/conventions/`? A shared helper module or cross-extension dependency → CRITICAL.
+1. **Compatibility matrix** — does the plan declare the Operaton minor versions the extension supports and add a CI matrix entry per minor (x.y.0 included, at its latest patch) with tests on a real embedded engine (clients: integration tests against `operaton/operaton:<version>`)? Missing → CRITICAL (the domain invariant).
+2. **Self-contained module** — does the extension depend on nothing in the repository but the parent POM (clients: on nothing at all), and follow the module layout in `docs/conventions/`? A shared helper module or cross-extension dependency → CRITICAL.
 3. **Documentation and example** — does the plan include the module's docs (when to use, how to install, how to use) and a near-real-world example that builds in CI, plus the catalog entry? Missing → CRITICAL.
 4. **Provenance** — when the plan adopts code from Camunda 7 community extensions, CIB seven, n8n or another project: is the source license named and compatible, and is attribution (file headers, NOTICE) a plan step? Missing → CRITICAL; an incompatible license → BLOCK (re-implement from scratch instead).
 5. **Release scope** — does the plan avoid bumping released versions of other extensions and touching release branches? A change that forces every extension to release (parent POM) is called out → WARNING.

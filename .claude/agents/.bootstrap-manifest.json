@@ -1,14 +1,161 @@
 {
   "generated_by": "bootstrap-agents",
-  "note": "Generated at onboarding for the planned layout (the tree was empty): Maven multi-module, plugins/<name>/ and connectors/<name>/ sharing only the parent POM. Commands are planned (./mvnw), not yet verified: re-run /bootstrap-agents in maintenance mode once modules exist.",
+  "note": "Generated at onboarding for the planned layout (the tree was empty): Maven multi-module, plugins/<name>/ and connectors/<name>/ sharing only the parent POM. Commands are planned (./mvnw), not yet verified: re-run /bootstrap-agents in maintenance mode once modules exist. Install audit (step 10): client-engineer added for clients/**; parent/pom.xml and compatibility/** added to critical paths.",
   "agents": [
-    {"name": "plugin-engineer", "archetype": "domain-expert", "generated_at": "2026-11-27", "survey_signals": ["planned plugins/** modules (user direction)"], "globs_used": ["plugins/**"], "commands_used": {"test_scoped": "./mvnw -B -pl plugins/* (planned; scoping to one module is prose only)", "git": "git diff *, git log *, git status, git show *"}},
-    {"name": "connector-engineer", "archetype": "domain-expert", "generated_at": "2026-11-27", "survey_signals": ["planned connectors/** modules (user direction)"], "globs_used": ["connectors/**"], "commands_used": {"test_scoped": "./mvnw -B -pl connectors/* (planned; prose-scoped)", "git": "git diff *, git log *, git status, git show *"}},
-    {"name": "test-engineer", "archetype": "test-engineer", "generated_at": "2026-11-27", "survey_signals": ["no tests yet; compatibility matrix per extension (user direction)"], "globs_used": ["pom.xml", ".github/workflows/release*.yml", ".github/jreleaser/**", "**/src/test/**"], "commands_used": {"test_scoped": "./mvnw -B -pl plugins/*, ./mvnw -B -pl connectors/* (planned; prose-scoped)", "e2e": "none", "left_out": "whole reactor and full matrix (CI runs the matrix)"}},
-    {"name": "release-engineer", "archetype": "release-engineer (repository archetype)", "generated_at": "2026-11-27", "survey_signals": ["JReleaser per-extension releases, change-tree matrix, dependabot, labeler, zizmor, auto-merge (user direction)"], "globs_used": [".github/**", "pom.xml"], "commands_used": {"git": "git diff *, git log *, git status, git show *", "gh": "gh run list *, gh run view *, gh workflow list *"}},
-    {"name": "docs-writer", "archetype": "docs-writer", "generated_at": "2026-11-27", "survey_signals": ["docs/ (claude-details.md), per-extension docs and examples required (user direction)"], "globs_used": ["docs/**", "**/README.md", "**/examples/**"], "commands_used": {"git": "git diff *, git log *, git status"}},
-    {"name": "license-reviewer", "archetype": "license-reviewer (repository archetype)", "generated_at": "2026-11-27", "survey_signals": ["code adoption from Camunda 7 / CIB seven / n8n with attribution (user direction)"], "globs_used": ["**/NOTICE*", "**/LICENSE*", "plugins/*/pom.xml", "connectors/*/pom.xml"], "commands_used": {"git": "git diff *, git log *, git show *"}},
-    {"name": "security-reviewer", "archetype": "security-reviewer", "generated_at": "2026-11-27", "survey_signals": ["connectors handle credentials and external I/O; CI workflows (zizmor)"], "globs_used": ["connectors/**", ".github/workflows/**"], "commands_used": {}},
-    {"name": "code-reviewer", "archetype": "code-reviewer", "generated_at": "2026-11-27", "survey_signals": ["always proposed (generalist final gate)", "Java (planned)"], "globs_used": [], "commands_used": {"lint_ci": "UNVERIFIED: none defined yet", "typecheck": "none (javac inside Maven)", "git": "git diff *, git log *, git show *"}}
+    {
+      "name": "plugin-engineer",
+      "archetype": "domain-expert",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "planned plugins/** modules (user direction)"
+      ],
+      "globs_used": [
+        "plugins/**"
+      ],
+      "commands_used": {
+        "test_scoped": "./mvnw -B -pl plugins/* (planned; scoping to one module is prose only)",
+        "git": "git diff *, git log *, git status, git show *"
+      }
+    },
+    {
+      "name": "connector-engineer",
+      "archetype": "domain-expert",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "planned connectors/** modules (user direction)"
+      ],
+      "globs_used": [
+        "connectors/**"
+      ],
+      "commands_used": {
+        "test_scoped": "./mvnw -B -pl connectors/* (planned; prose-scoped)",
+        "git": "git diff *, git log *, git status, git show *"
+      }
+    },
+    {
+      "name": "client-engineer",
+      "archetype": "sdk-engineer",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "clients/<language>/ external task clients JS/TS, Python, Go, Rust (user direction, added after the install audit)"
+      ],
+      "globs_used": [
+        "clients/**"
+      ],
+      "commands_used": {
+        "test_scoped": "npm --prefix clients/js test; python -m pytest clients/python/...; go -C clients/go test ./...; cargo test --manifest-path clients/rust/Cargo.toml (planned)",
+        "git": "git diff *, git log *, git status, git show *"
+      },
+      "note": "9th agent, one past ROSTER_SIZE_TARGET: four toolchains plus a cross-language parity duty is a distinct role; connector-engineer's tools are Maven-only"
+    },
+    {
+      "name": "test-engineer",
+      "archetype": "test-engineer",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "no tests yet; compatibility matrix per extension (user direction)"
+      ],
+      "globs_used": [
+        "pom.xml",
+        "parent/pom.xml",
+        "compatibility/**",
+        ".github/workflows/release*.yml",
+        ".github/jreleaser/**",
+        "**/src/test/**",
+        "clients/*/test*/**",
+        "**/extension.yml"
+      ],
+      "commands_used": {
+        "test_scoped": "./mvnw -B -pl plugins/*, ./mvnw -B -pl connectors/* (planned; prose-scoped)",
+        "e2e": "none",
+        "left_out": "whole reactor and full matrix (CI runs the matrix)"
+      }
+    },
+    {
+      "name": "release-engineer",
+      "archetype": "release-engineer (repository archetype)",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "JReleaser per-extension releases, change-tree matrix, dependabot, labeler, zizmor, auto-merge (user direction)"
+      ],
+      "globs_used": [
+        ".github/**",
+        "pom.xml",
+        "parent/pom.xml",
+        "compatibility/**",
+        "**/extension.yml",
+        "tools/**"
+      ],
+      "commands_used": {
+        "git": "git diff *, git log *, git status, git show *",
+        "gh": "gh run list *, gh run view *, gh workflow list *"
+      }
+    },
+    {
+      "name": "docs-writer",
+      "archetype": "docs-writer",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "docs/ (claude-details.md), per-extension docs and examples required (user direction)"
+      ],
+      "globs_used": [
+        "docs/**",
+        "**/README.md",
+        "**/example/**"
+      ],
+      "commands_used": {
+        "git": "git diff *, git log *, git status"
+      }
+    },
+    {
+      "name": "license-reviewer",
+      "archetype": "license-reviewer (repository archetype)",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "code adoption from Camunda 7 / CIB seven / n8n with attribution (user direction)"
+      ],
+      "globs_used": [
+        "**/NOTICE*",
+        "**/LICENSE*",
+        "plugins/*/pom.xml",
+        "connectors/*/pom.xml",
+        "clients/*/package.json",
+        "clients/*/pyproject.toml",
+        "clients/*/go.mod",
+        "clients/*/Cargo.toml"
+      ],
+      "commands_used": {
+        "git": "git diff *, git log *, git show *"
+      }
+    },
+    {
+      "name": "security-reviewer",
+      "archetype": "security-reviewer",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "connectors handle credentials and external I/O; CI workflows (zizmor)"
+      ],
+      "globs_used": [
+        "connectors/**",
+        "clients/**",
+        ".github/workflows/**"
+      ],
+      "commands_used": {}
+    },
+    {
+      "name": "code-reviewer",
+      "archetype": "code-reviewer",
+      "generated_at": "2026-11-27",
+      "survey_signals": [
+        "always proposed (generalist final gate)",
+        "Java (planned)"
+      ],
+      "globs_used": [],
+      "commands_used": {
+        "lint_ci": "UNVERIFIED: none defined yet",
+        "typecheck": "none (javac inside Maven)",
+        "git": "git diff *, git log *, git show *"
+      }
+    }
   ]
 }

@@ -12,7 +12,7 @@ You check that every line in this repository may legally be here and says where 
 ## Lens
 - Source license compatibility: Apache-2.0, MIT, BSD are reusable with attribution; copyleft (GPL, AGPL, LGPL for copied source), "fair-code"/source-available licenses (n8n's Sustainable Use License) and unlicensed code are not copied; ideas and public API shapes may be re-implemented from scratch, and the PR says so.
 - Attribution for a direct copy or port: a header in each adopted file naming the origin project, path and license; the origin listed in the module's `NOTICE`; the original copyright kept.
-- New dependencies: license of each new Maven dependency (and its scope); a copyleft runtime dependency is a blocker to report.
+- New dependencies: license of each new dependency — Maven, npm (`package.json`), Python (`pyproject.toml`), Go (`go.mod`), Rust (`Cargo.toml`) — and its scope; a copyleft runtime dependency is a blocker to report.
 - Trademarks: a module may say "compatible with Camunda 7 connectors" but never implies endorsement.
 
 ## Forbidden from memory

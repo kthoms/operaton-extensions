@@ -10,11 +10,12 @@ Rows are `signal → reviewer agent(s)`. The left column is anything decidable f
 |---|---|
 | `plugins/**`; process engine plugins, BPMN parse listeners, execution/task listeners, engine configuration | `plugin-engineer` |
 | `connectors/**`; connectors, external-task workers, third-party integrations | `connector-engineer` + `security-reviewer` |
-| `pom.xml`, `.github/workflows/release*.yml`, `.github/jreleaser/**` (critical paths) — OR `**/src/test/**`; Operaton compatibility matrix | `test-engineer` |
-| `.github/**`, `pom.xml`; CI, Dependabot, JReleaser, release branches, change-tree builds | `release-engineer` |
+| `clients/**`; external task clients (JS/TS, Python, Go, Rust), REST protocol, client packaging, cross-language parity | `client-engineer` + `security-reviewer` |
+| `pom.xml`, `parent/pom.xml`, `compatibility/**`, `.github/workflows/release*.yml`, `.github/jreleaser/**` (critical paths) — OR `**/src/test/**`, `clients/*/test*/**`, `**/extension.yml`; Operaton compatibility matrix | `test-engineer` |
+| `.github/**`, `pom.xml`, `parent/pom.xml`, `compatibility/**`, `**/extension.yml`, `tools/**`; CI, Dependabot, JReleaser, release branches, change-tree builds | `release-engineer` |
 | `.github/workflows/**`; workflow permissions, secrets, supply chain | `security-reviewer` |
-| `docs/**`, `**/README.md`, `**/examples/**`; extension documentation, catalog, conventions | `docs-writer` |
-| `**/NOTICE*`, `**/LICENSE*`, `plugins/*/pom.xml`, `connectors/*/pom.xml`; code adopted from Camunda 7, CIB seven, n8n or another project; new dependencies | `license-reviewer` |
+| `docs/**`, `**/README.md`, `**/example/**`; extension documentation, catalog, conventions | `docs-writer` |
+| `**/NOTICE*`, `**/LICENSE*`, `plugins/*/pom.xml`, `connectors/*/pom.xml`, `clients/*/package.json`, `clients/*/pyproject.toml`, `clients/*/go.mod`, `clients/*/Cargo.toml`; code adopted from Camunda 7, CIB seven, n8n or another project; new dependencies | `license-reviewer` |
 
 The `code-reviewer` agent has no row: it is the general reviewer the skill runs when nothing else matches.
 

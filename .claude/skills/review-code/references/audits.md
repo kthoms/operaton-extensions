@@ -37,13 +37,13 @@ Print a table, one line per file, then hand the result to Step 10.
 
 ### Extension contract (this repository)
 
-**Trigger:** the diff adds or changes files under `plugins/<name>/` or `connectors/<name>/`.
+**Trigger:** the diff adds or changes files under `plugins/<name>/`, `connectors/<name>/` or `clients/<language>/`.
 
 Source: CLAUDE.md "Project Rules" and the domain invariant.
 
-1. **Declared versions = verified versions.** Read the module's declared Operaton minor versions and the CI matrix entries that build it: every declared minor (x.y.0 included) has an entry at its latest patch, and no entry is missing a declaration. Mismatch → CRITICAL.
-2. **Self-contained.** The module's POM has the repository parent and no dependency on another module of this repository. Violation → CRITICAL.
-3. **Docs and example.** The module has its documentation (when to use, how to install, how to use) and an example that builds; config keys and versions in the docs match the code and POM. Missing or contradicting → CRITICAL.
+1. **Declared versions = verified versions.** Read the extension's declared Operaton minor versions (`compatibility` in its `extension.yml`) and the CI matrix entries that build it: every declared minor (x.y.0 included) has an entry at its latest patch, and no entry is missing a declaration. Mismatch → CRITICAL.
+2. **Self-contained.** Java extensions: the module's POM has the repository parent (`parent/pom.xml`) and no dependency on another module of this repository. Clients: their native project file (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`) depends on nothing in this repository. Violation → CRITICAL.
+3. **Docs and example.** The module has its documentation (when to use, how to install, how to use) and an example that builds; config keys and versions in the docs match the code, the POM or native project file, and `extension.yml`. Missing or contradicting → CRITICAL.
 4. **Provenance.** Files carrying another project's copyright or package names have an origin header and a NOTICE entry with a compatible license. Missing → CRITICAL.
 5. **Homogeneity.** Layout and naming follow `docs/conventions/`. Deviation → WARNING.
 

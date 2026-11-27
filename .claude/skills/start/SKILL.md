@@ -41,7 +41,7 @@ BRANCH_ISSUE_PATTERN={number}-{slug}
 WORKTREE_LAYOUT=siblings
 PLAN_DIR=docs/plans/
 # One row per domain-expert agent: detection-table globs → first clause of its description.
-DOMAIN_AGENTS=plugins/** -> plugin-engineer: Operaton engine-plugin specialist; connectors/** -> connector-engineer: Operaton connector and integration specialist
+DOMAIN_AGENTS=plugins/** -> plugin-engineer: Operaton engine-plugin specialist; connectors/** -> connector-engineer: Operaton connector and integration specialist; clients/** -> client-engineer: Operaton external task client specialist
 REPORT_CAP=400/200
 ```
 
