@@ -1,0 +1,8 @@
+kind: plugin
+name: micrometer-metrics
+title: Micrometer Metrics Plugin
+description: Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

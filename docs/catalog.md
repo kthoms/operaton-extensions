@@ -15,7 +15,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
-| | | | |
+| [`micrometer-metrics`](../plugins/micrometer-metrics/) | Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer. | 2.0 - 2.2 | incubating |
 
 ## Connectors
 
@@ -43,7 +43,6 @@ contributor picks one, opens an issue, and moves it to the tables above with the
 | Kind | Extension | What it does | Source / reuse |
 |---|---|---|---|
 | plugin | `process-test-coverage` | Coverage of BPMN flow nodes and sequence flows by tests, HTML report, coverage assertions | camunda-community-hub/camunda-process-test-coverage (Apache-2.0, archived): port with attribution |
-| plugin | `micrometer-metrics` | Micrometer metrics: engine metrics, job backlog, incidents, instance counters | idea from camunda-prometheus-process-engine-plugin (MIT, archived): fresh |
 | plugin | `opentelemetry-tracing` | OpenTelemetry spans for activities, jobs and external tasks | fresh |
 | plugin | `history-kafka` | Streams history events to Kafka after commit (JSON / CloudEvents) | fresh |
 | plugin | `incident-notifier` | Mail / webhook (Slack, Teams) notifications on incidents, with throttling | camunda-community-hub/email-incident-notification-plugin (Apache-2.0): port and generalise |

@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>micrometer-metrics</module>
     <!-- extensions:end -->
   </modules>
 </project>
