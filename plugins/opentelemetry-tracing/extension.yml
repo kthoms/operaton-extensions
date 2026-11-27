@@ -1,0 +1,8 @@
+kind: plugin
+name: opentelemetry-tracing
+title: OpenTelemetry Tracing
+description: Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

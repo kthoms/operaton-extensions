@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_order_fulfilment" targetNamespace="http://operaton.org/extensions/example/opentelemetry-tracing">
+  <bpmn:process id="order-fulfilment" name="Order fulfilment" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="orderReceived" name="Order received"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:serviceTask id="validateOrder" name="Validate order" operaton:delegateExpression="${validateOrder}"><bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="highValue" name="High value order?" default="f4"><bpmn:incoming>f2</bpmn:incoming><bpmn:outgoing>f3</bpmn:outgoing><bpmn:outgoing>f4</bpmn:outgoing></bpmn:exclusiveGateway>
+    <bpmn:userTask id="approveOrder" name="Approve order" operaton:candidateGroups="sales"><bpmn:incoming>f3</bpmn:incoming><bpmn:outgoing>f5</bpmn:outgoing></bpmn:userTask>
+    <bpmn:exclusiveGateway id="approvedJoin"><bpmn:incoming>f4</bpmn:incoming><bpmn:incoming>f5</bpmn:incoming><bpmn:outgoing>f6</bpmn:outgoing></bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="chargePayment" name="Charge payment" operaton:asyncBefore="true" operaton:delegateExpression="${chargePayment}"><bpmn:incoming>f6</bpmn:incoming><bpmn:outgoing>f7</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:serviceTask id="shipOrder" name="Ship order" operaton:type="external" operaton:topic="ship-order"><bpmn:incoming>f7</bpmn:incoming><bpmn:outgoing>f8</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:endEvent id="orderFulfilled" name="Order fulfilled"><bpmn:incoming>f8</bpmn:incoming></bpmn:endEvent>
+    <bpmn:boundaryEvent id="paymentDeclined" name="Payment declined" attachedToRef="chargePayment"><bpmn:outgoing>f9</bpmn:outgoing><bpmn:errorEventDefinition id="err1" errorRef="Error_declined"/></bpmn:boundaryEvent>
+    <bpmn:endEvent id="orderCancelled" name="Order cancelled"><bpmn:incoming>f9</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="orderReceived" targetRef="validateOrder"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="validateOrder" targetRef="highValue"/>
+    <bpmn:sequenceFlow id="f3" name="yes" sourceRef="highValue" targetRef="approveOrder"><bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${orderTotal &gt; 1000}</bpmn:conditionExpression></bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f4" name="no" sourceRef="highValue" targetRef="approvedJoin"/>
+    <bpmn:sequenceFlow id="f5" sourceRef="approveOrder" targetRef="approvedJoin"/>
+    <bpmn:sequenceFlow id="f6" sourceRef="approvedJoin" targetRef="chargePayment"/>
+    <bpmn:sequenceFlow id="f7" sourceRef="chargePayment" targetRef="shipOrder"/>
+    <bpmn:sequenceFlow id="f8" sourceRef="shipOrder" targetRef="orderFulfilled"/>
+    <bpmn:sequenceFlow id="f9" sourceRef="paymentDeclined" targetRef="orderCancelled"/>
+  </bpmn:process>
+  <bpmn:error id="Error_declined" name="Payment declined" errorCode="PAYMENT_DECLINED"/>
+  <bpmndi:BPMNDiagram id="Diagram_1"><bpmndi:BPMNPlane id="Plane_1" bpmnElement="order-fulfilment">
+    <bpmndi:BPMNShape id="orderReceived_di" bpmnElement="orderReceived"><dc:Bounds x="152" y="102" width="36" height="36"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="validateOrder_di" bpmnElement="validateOrder"><dc:Bounds x="240" y="80" width="100" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="highValue_di" bpmnElement="highValue" isMarkerVisible="true"><dc:Bounds x="395" y="95" width="50" height="50"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="approveOrder_di" bpmnElement="approveOrder"><dc:Bounds x="500" y="80" width="100" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="approvedJoin_di" bpmnElement="approvedJoin" isMarkerVisible="true"><dc:Bounds x="655" y="95" width="50" height="50"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="chargePayment_di" bpmnElement="chargePayment"><dc:Bounds x="760" y="80" width="100" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="shipOrder_di" bpmnElement="shipOrder"><dc:Bounds x="920" y="80" width="100" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="orderFulfilled_di" bpmnElement="orderFulfilled"><dc:Bounds x="1080" y="102" width="36" height="36"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="paymentDeclined_di" bpmnElement="paymentDeclined"><dc:Bounds x="792" y="142" width="36" height="36"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="orderCancelled_di" bpmnElement="orderCancelled"><dc:Bounds x="872" y="242" width="36" height="36"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1"><di:waypoint x="188" y="120"/><di:waypoint x="240" y="120"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2"><di:waypoint x="340" y="120"/><di:waypoint x="395" y="120"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3"><di:waypoint x="445" y="120"/><di:waypoint x="500" y="120"/><bpmndi:BPMNLabel><dc:Bounds x="455" y="100" width="20" height="14"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4"><di:waypoint x="420" y="145"/><di:waypoint x="420" y="200"/><di:waypoint x="680" y="200"/><di:waypoint x="680" y="145"/><bpmndi:BPMNLabel><dc:Bounds x="450" y="205" width="20" height="14"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f5_di" bpmnElement="f5"><di:waypoint x="600" y="120"/><di:waypoint x="655" y="120"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f6_di" bpmnElement="f6"><di:waypoint x="705" y="120"/><di:waypoint x="760" y="120"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f7_di" bpmnElement="f7"><di:waypoint x="860" y="120"/><di:waypoint x="920" y="120"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f8_di" bpmnElement="f8"><di:waypoint x="1020" y="120"/><di:waypoint x="1080" y="120"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f9_di" bpmnElement="f9"><di:waypoint x="810" y="178"/><di:waypoint x="810" y="260"/><di:waypoint x="872" y="260"/></bpmndi:BPMNEdge>
+  </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

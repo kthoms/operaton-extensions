@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    # the extension needs no history level; full gives Cockpit the traceparent variable too
+    history-level: full
+example:
+  otel:
+    endpoint: http://localhost:4318   # Jaeger OTLP/HTTP, see compose.yaml
