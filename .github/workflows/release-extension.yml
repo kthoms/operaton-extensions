@@ -350,7 +350,7 @@ jobs:
           rustup default stable
           mkdir src && tar -xzf release/source.tar.gz -C src
           cd "src/$EXT"
-          if [ "$DRY_RUN" = true ]; then cargo publish --dry-run; else cargo publish; fi
+          if [ "$DRY_RUN" = true ]; then cargo publish --dry-run; else cargo publish; fi # zizmor: ignore[use-trusted-publishing] crates.io trusted publishing needs an existing crate; switch after the first release (follow-up)
 
   github-release:
     name: "GitHub release of ${{ inputs.extension }}"
