@@ -149,7 +149,7 @@ Run your full local gate: typecheck, lint, tests for anything new. Fix everythin
 Then:
 - Sync with the base branch; merge/rebase and resolve conflicts per the Git Merge Protocol below if you're more than a few commits behind.
 - Link the issue in the PR body (`Closes #N` to auto-close on merge, where your tracker supports it).
-- Ask the user whether the tracked issue should close now or stay open for remaining work — don't assume.
+- ship's close-out closes the issues the PR fixes.
 - Move the board status if applicable.
 
 ### 4. Confirm and verify
@@ -306,20 +306,20 @@ A skip is the answer, not an obstacle: never add `--force` to get past one. Beca
 
 > This repository had no docs layout at setup; this is the convention it adopts. A new doc has exactly one right place.
 
-Keep project docs under one root (`DOCS_ROOT`) with a small, stable set of subfolders. Suggested shape — adapt names/depth to your repo:
+Repository-wide docs live under `docs/`; everything about one extension lives inside that extension (its `README.md`, `CHANGELOG.md` and `docs/`):
 
 ```
-DOCS_ROOT/
-├── setup/          — environment & config instructions
-├── architecture/    — system design, cross-cutting decisions
-├── requirements/     — specs/PRDs, organized by domain + an archive/ for superseded ones
-├── testing/          — test guides, QA notes
-├── procedures/        — this file and its siblings
-├── session-notes/       — session summaries capturing "why," not just "what"
-└── archive/            — anything superseded, kept for history
+docs/
+├── conventions/      — the central rules (repository-design.md is the spec; structure, code, docs, clients, licensing, release)
+├── catalog.md        — the extension catalog and backlog ("Is there an extension for …?")
+├── claude-details.md — this file
+├── sessions/         — session summaries capturing "why," not just "what" (checkpoint writes them)
+├── plans/            — archived approved plans (checkpoint)
+├── review-findings/  — review-code findings logs
+└── retros/           — weekly retro reports
 ```
 
-**Naming conventions** (adapt, but pick something and stick to it): spec files as `{feature}-spec.md`, changelogs as `{feature}-changelog.md` (or per-PR fragments — see the append-hotspot note under Git Workflow), session summaries as `{topic}-{date}.md`.
+**Naming conventions:** session summaries as `{topic}-{date}.md`; changelogs are per extension and generated at release time (never a shared append-only file).
 
 **Where new specs go:** a genuinely new domain concept gets its own file; a field/table addition to an existing concept updates the existing spec in place. When unsure which it is, that uncertainty is itself the signal to search all sections referencing the affected concept before writing anything new.
 
@@ -331,33 +331,27 @@ DOCS_ROOT/
 
 ### Step 1: Planning
 
-Enter planning mode before writing code or mockups. Break the spec into 3–5 independently testable, independently committable phases. Flag which phases have UI work (they need mockups) and which touch schema (usually early phases). Wait for explicit plan approval before proceeding.
+Enter planning mode before writing code. Break the spec into 3–5 independently testable, independently committable phases. Run the plan through `review-plan`, fold in its findings, then proceed in best guess (recording the guesses in the PR); ask the user only when the plan touches a protected file or one of review-plan's `PROTECTED_PATTERNS`.
 
 ### Step 2: Implementation, per phase
 
-**2a. Mockups first, for any phase with UI work.** Before writing framework code:
-1. Ask about mockup structure once, up front: self-contained single-file mockups for one-offs, or shared CSS/JS across a mockup set of 3+ related pages to avoid drift.
-2. Build static mockups with realistic sample data (not lorem ipsum), covering empty/loading/populated/error states, and every interactive element at least clickable.
-3. Get explicit mockup approval before writing any implementation code — iterating on a mockup is far cheaper than iterating on real UI code.
-4. For 3+ related mockups, write a short patterns doc capturing layout/navigation/interaction decisions that aren't obvious from the HTML alone.
+**2a. Implementation.** One phase at a time. After each phase record: files changed, what was implemented, known limitations. Run the extension's quality gate (its scoped build and tests against every declared Operaton minor) before calling the phase done.
 
-**2b. Implementation.** One phase at a time — stop before the next. After each phase report: files changed, what was implemented, known limitations, and a manual testing checklist for the user. Run your full quality gate before calling the phase done.
-
-**2c. Review and commit.** Wait for user review of each phase. Don't proceed to the next phase until the current one is confirmed. Fix issues before committing, not after.
+**2b. Review and commit.** Run `review-code` on each phase, fix what it finds, then commit on the feature branch and go on to the next phase. Fix issues before committing, not after.
 
 ### Testing after implementation
 
-Write real integration tests, not just mocked unit tests, wherever the boundary matters (a real HTTP call, a real browser, a real datastore — not an in-process handler call). Cover three categories, not just the happy path:
+Write real integration tests, not just mocked unit tests, wherever the boundary matters (a real embedded engine, a real external system in Testcontainers, a real `operaton/operaton` engine for clients — not a mocked engine API). Cover three categories, not just the happy path:
 
-**Attacks** — injection via user-controlled input, auth bypass, cross-tenant data access (IDOR), malformed/oversized input, and — for anything billing-adjacent — negative quantities, zero prices, duplicate submissions.
+**Attacks** — injection via process variables or expressions (SQL, header, template, prompt injection for LLM connectors), credentials leaking into variables, logs or history, malformed/oversized payloads.
 
-**Edge cases** — zero/empty/null values, boundary conditions (first/last page, min/max limits, exactly-at-threshold), concurrent/racing requests, currency and rounding edge cases, missing optional fields downstream code assumes exist.
+**Edge cases** — null/empty/missing variables, boundary conditions (max batch sizes, exactly-at-limit), concurrent job executor threads, a process that rolls back after the extension acted, every declared Operaton minor.
 
-**Failure modes** — slow/timing-out dependencies, partial failure mid-transaction (what rolled back, what didn't), retries that could double-write or double-charge, resource limits (cold starts, memory caps, dead-letter scenarios) for async paths.
+**Failure modes** — slow/timing-out external systems, partial failure mid-transaction (what rolled back, what didn't — a side effect must happen after commit or be idempotent), retries that could double-send, incidents raised with a useful message.
 
 ### Self-review checklist before marking any phase complete
 
-Missing error handling; injection/XSS/auth-bypass surface; unjustified loose typing; edge cases (empty/null/loading states); responsive layout if UI; basic accessibility if UI.
+Missing error handling; injection and credential-leak surface; thread safety under the job executor; transaction boundaries (after-commit side effects); edge cases (null/empty variables); compatibility with every declared minor.
 
 ---
 
@@ -385,7 +379,7 @@ if: always() && <your-real-condition> && needs.<upstream-job>.result == 'success
 
 ## Git Merge Protocol
 
-> If your integration branch uses a merge queue, note its config and troubleshooting path here (or link to a dedicated doc) — queue behavior (speculative merges, batching windows, force-push ejection) changes what "stuck in queue" means.
+No merge queue is in use; PRs into `develop` merge one at a time (ship, or auto-merge for Dependabot).
 
 **A dirty working tree first.** If there are modified files, commit them first (a WIP commit you can squash later) — merging with a dirty working tree fails with "local changes would be overwritten" and leaves the tree in a half-merged state. Never set them aside with a hand-rolled `git stash`: the stash stack is shared by every worktree and session of the repository, and a bare `pop` can restore someone else's work.
 
@@ -466,7 +460,7 @@ Always check: no duplicate sequence numbers, full quality gate green, and — fo
 
 ## Git Workflow Details
 
-**Standard flow:** branch off the base branch → commit → push → open a PR targeting the base branch (not straight to production) → review → merge → delete the branch. Direct commits to the base branch are fine for trivial fixes/docs; feature branches are preferred for anything reviewable.
+**Standard flow:** branch off the base branch → commit → push → open a PR targeting the base branch (not straight to production) → review → merge → delete the branch. Never commit directly to `develop`, `main` or `release/*`; a trivial fix also goes through a feature branch and PR.
 
 **Multiple PRs from one branch:** a merged PR does not block opening a new PR from the same branch. New commits on an already-merged-once branch just need a push and a new PR — don't create a fresh branch and cherry-pick, that's wasted motion.
 
@@ -593,7 +587,7 @@ For any plan with 2+ independent work streams or 3+ phases, include an explicit 
 
 ### Budget modes
 
-Don't ask. Use the default, **Parallel** (or the default your onboarding configured), and state it in the plan ("token budget: Parallel — default"). Max Parallel, the loosest and most expensive mode, is opt-in only, when the user asks for it. Only the user moves the mode, either way, and it holds until they move it again.
+Don't ask. Use the default, **Parallel**, and state it in the plan ("token budget: Parallel — default"). Max Parallel, the loosest and most expensive mode, is opt-in only, when the user asks for it. Only the user moves the mode, either way, and it holds until they move it again.
 
 For a genuinely single-phase, no-parallel-streams plan, don't silently default to "no subagents" either — default to Parallel unless the work is truly sequential (each step depends on the prior step's output). "This task feels small" is not the same as "this task has zero parallelizable work."
 
@@ -765,7 +759,7 @@ After any compaction (manual or automatic), **read the summary and act on it** �
 
 The failure mode this prevents: stopping to "verify context" after every compaction even when the summary clearly states the next step — that kills momentum and forces the user to repeat themselves.
 
-**Still never, regardless of what the summary says:** commit or push autonomously, take any destructive action based on the summary alone, or discard the summary and start over as if it's a new conversation.
+**Still never, regardless of what the summary says:** commit or push outside what CLAUDE.md "Commits and PRs" allows (feature branches into develop only), take any destructive action based on the summary alone, or discard the summary and start over as if it's a new conversation.
 
 **What to preserve when compacting:** architectural decisions and their rationale, key open decisions from any spec docs in flight, file paths created/modified, completed vs. pending work, current blockers.
 
@@ -773,7 +767,7 @@ The failure mode this prevents: stopping to "verify context" after every compact
 
 ## Context Optimization Hooks
 
-A small set of hooks reduces context waste mechanically rather than relying on the agent to self-regulate. Describe these as patterns and reproduce them for your own harness — the exact filenames don't matter, the shapes do.
+A small set of hooks reduces context waste mechanically rather than relying on the agent to self-regulate. The first three below are patterns (not installed here; this machine's user-level RTK hook rewrites verbose shell commands); the installed pack follows.
 
 **1. Output truncator.** A small utility that, given verbose stdin, keeps a head slice + tail slice with a summarized gap in between once output exceeds a configurable line threshold. Used by the next hook, and directly by anything else that wants to cap its own output.
 
@@ -783,13 +777,14 @@ A small set of hooks reduces context waste mechanically rather than relying on t
 
 **3. Read-once enforcement (PreToolUse hook on the read tool).** Blocks or warns on re-reading a file within a TTL window if its mtime hasn't changed since the last read in this session. Forces "reference your prior read" instead of "re-fetch and re-pay the token cost."
 
-**The installed pack.** The HumanMaxxing hooks pack (the download's `hooks/` folder) holds three
+**The installed pack.** The HumanMaxxing hooks pack (the download's `hooks/` folder) holds four
 hooks, installed into `.claude/hooks/` by `hooks/bin/hooks-install.sh`: the protected-file guard
 (for any change to a file in `.claude/protected-files.txt`, the hook settings files or the hooks
 folder), the commit check (for a commit while `COMMIT_CHECK_CMD` in `.claude/hooks/hooks.env`
-fails) and the pending-question reprint (a hook that shows the question still waiting for an
-answer again; see Pending Questions). The guard and the commit check are installed in warn-only
-mode (`--mode warn`): they print what they found and let the action through. Switching them to
+fails), the pending-question reprint (a hook that shows the question still waiting for an
+answer again; see Pending Questions) and the review nudge (at the end of a turn that wrote
+reviewable files no review covers, a reminder to run `review-code`). The guard, the commit check
+and the review nudge are installed in warn-only mode (`--mode warn`): they print what they found and let the action through. Switching them to
 blocking (the guard asks for the user's approval, the commit check refuses the commit) is
 `hooks-install.sh --mode enforce`, a separate decision the team takes later. When the hooks were
 declined at install, none of them is installed: install them later the same way as "Recreation"

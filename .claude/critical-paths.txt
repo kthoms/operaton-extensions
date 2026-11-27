@@ -1,7 +1,9 @@
-# Critical paths confirmed at onboarding step 2 (autonomously, per the user's instruction): the parent POM every
-# extension inherits, the release workflows and the JReleaser configuration.
+# Critical paths confirmed at onboarding step 2 (autonomously, per the user's instruction): the root aggregator POM,
+# the parent POM every Java extension inherits (parent/pom.xml), the compatibility pins, the release workflows and the JReleaser configuration.
 # Switched off for the first install: lines start with "# off: " so every diff is E2E-exempt.
 # follow-up: turn on the end-to-end gate with: sed -i.bak 's/^# off: //' .claude/critical-paths.txt
 # off: pom.xml
+# off: parent/pom.xml
+# off: compatibility/**
 # off: .github/workflows/release*.yml
 # off: .github/jreleaser/**

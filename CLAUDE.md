@@ -7,9 +7,8 @@ own defaults will defer real work, hide failures behind a graceful fallback, dec
 of malice, but because those are the locally-reasonable choices when nothing tells it otherwise.
 Every rule here closes one of those failure modes, in the order we discovered we needed it.
 
-Adapt the configuration slots to your repo, keep the rule bodies close to as-is — the specific
-wording (including the banned-phrasing lists) is doing real work; a paraphrase tends to lose the
-force of the rule within a few sessions.
+Keep the rule bodies close to as-is: the specific wording (including the banned-phrasing lists)
+is doing real work; a paraphrase tends to lose the force of the rule within a few sessions.
 
 ---
 
@@ -19,8 +18,8 @@ force of the rule within a few sessions.
 DOMAIN-INVARIANT       — Every extension declares the Operaton minor versions it supports, and its build verifies each one (one check per minor, x.y.0 included, at that minor's latest patch); a version that is not verified is never claimed.
 INTEGRATION-BRANCH     — develop
 STAGING-BRANCH         — none (no environments)
-PROD-BRANCH            — main (a merge from develop releases the changed extensions; release/<kind>/<name>/<minor>.x branches carry patch releases)
-FEATURE-PREFIX         — feature/*
+PROD-BRANCH            — main (a merge from develop releases the changed extensions; release/<kinds>/<name>/<major>.<minor>.x branches carry patch releases)
+FEATURE-PREFIX         — feature/<slug> (hand-named) and <issue>-<slug> (issue branches from the worktree skill)
 DOCS-ROOT              — docs/
 DETAILS-FILE           — docs/claude-details.md
 TODO-FILE              — none
@@ -30,15 +29,14 @@ PROTECTED-FILES        — .claude/protected-files.txt
 TENANT-KEY             — not applicable (single-tenant library, no data store)
 RECOMMENDATION-MODE    — on-request
 CLASS-GUARD-THRESHOLD  — 7
-FAIL-LOUDLY-EXAMPLES   — Java (see "#1 RULE")
+FAIL-LOUDLY-EXAMPLES   — Java, TypeScript, Python, Go, Rust (see "#1 RULE")
 ```
 
 **Detail pointer convention:** this file states each rule once, briefly, at the "always true"
 level. Anything that's a multi-step procedure (a checkpoint flow, a merge-conflict playbook, a
 hook-recreation recipe) belongs in `docs/claude-details.md`, referenced by an anchor link, not
-inlined here. Keep this file skimmable; keep the details file authoritative. Every `claude-
-details.md#anchor`-style pointer below assumes you've created that file and mirrored its section
-names.
+inlined here. Keep this file skimmable; keep the details file authoritative. Every
+`docs/claude-details.md#<anchor>` pointer below names a heading in that file.
 
 ---
 
@@ -116,7 +114,12 @@ problem — stop and re-read these rules.
   missing value with an empty default.
 - **NO band-aids.** Fix the root cause. If unsure, ask the user before implementing.
 
-In this repository's language, that means: Java — no empty `catch` block and no `catch (Exception e) { return null; }`; no `e.printStackTrace()` as the only handling; no `Optional.orElse(null)`, `Collections.emptyList()` or other default returned in place of a missing value; a stub throws `new UnsupportedOperationException("not implemented: <reason>")`.
+In this repository's languages, that means:
+- Java — no empty `catch` block and no `catch (Exception e) { return null; }`; no `e.printStackTrace()` as the only handling; no `Optional.orElse(null)`, `Collections.emptyList()` or other default returned in place of a missing value; a stub throws `new UnsupportedOperationException("not implemented: <reason>")`.
+- TypeScript — no empty `catch {}`, no swallowed promise (a floating promise or `.catch(() => {})`), no `?? {}` / `|| []` masking a missing value; a stub throws `new Error('Not implemented: <reason>')`.
+- Python — no bare `except:` / `except Exception: pass`, no `return None` in place of an error.
+- Go — never `_ =` an error, never `return nil` for an unhandled error; wrap with `fmt.Errorf("…: %w", err)`.
+- Rust — no `unwrap()` / `expect()` in library code paths, no ignored `Result` (`let _ =`); return the error with context.
 
 See `docs/claude-details.md#no-silent-errors`.
 
@@ -137,7 +140,7 @@ See `docs/claude-details.md#no-silent-errors`.
   proposed ticket to the user — title, the exact fix, the specific blocker — and **wait for
   explicit approval before filing.** "I'll file a follow-up for X" is not a decision you make;
   it's a proposal you bring to the user. Auto-filing a ticket without approval is a process bug,
-  same class as an autonomous commit.
+  same class as a commit outside the "Commits and PRs" autonomy.
 - **Filing trigger is SIZE, not decisions.** Approval-gated as above, the only reason to
   *propose* a follow-up is that the **fix itself is large** — multi-file, needs design, or
   blocked by an external dependency. A required user decision is **never** a filing reason: you
@@ -336,10 +339,13 @@ never start work in it: if you find yourself there with a task, create the workt
 *Deliberate override of the template's "no autonomous commits or PRs" rule (the user wants the
 agents to propose and build extensions autonomously):*
 
-**Extension and maintenance work is autonomous up to `develop`.** On a `feature/*` branch you
-commit, push and open a PR targeting `develop` without asking, through the checkpoint and ship
-skills, once the code review and the build pass. A PR into `develop` merges through auto-merge
-when its required checks are green. The manual checkpoint steps, for when no skill is installed:
+**Extension and maintenance work is autonomous up to `develop`.** On a feature branch
+(`feature/<slug>`, or `<issue>-<slug>` from the worktree skill) you commit, push and open a PR
+targeting `develop` without asking, through the checkpoint and ship skills. ship merges the PR
+into `develop` (squash) once the review gate and the configured checks pass. CI (`build.yml`,
+single required check `build-result`) arrives with the scaffold PR; until it exists, no build
+gates the merge. checkpoint and ship run only on a feature branch: on `develop`, `main` or
+`release/*` they stop. The manual checkpoint steps, for when no skill is installed:
 `docs/claude-details.md#checkpoint-procedure`.
 
 **Releases stay the user's.** Never merge `develop` into `main`, push to `main` or a `release/*`
@@ -364,18 +370,16 @@ agreed in conversation, or unambiguous one-shot actions.
 diff touching your critical-path globs gets a dedicated test-engineer subagent with no scoping
 prompt beyond the diff. You do not decide what is "small enough to skip"; only the user can
 waive it, with a reason, logged. Ship/checkpoint gate on the sentinel that pass writes, and fail
-closed. Until your roster has a test-engineer agent, dispatch a general-purpose agent with your
-test-engineer prompt as its lens; the gate is never skipped for lack of a roster entry. Trigger
+closed. The roster's `test-engineer` agent runs it; the gate is never skipped. Trigger
 list, sentinel hashing and override logging: `docs/claude-details.md#test-thoroughness-gate`.
 Not switched on yet: the critical paths in `.claude/critical-paths.txt` are off until their
 follow-up ("turn on the end-to-end gate").
 
-**Auto Review:** Once your plan-review skill is installed and its code-review companion is live,
-run it after formulating any plan: the multi-domain review for high-stakes plans and a lighter
+**Auto Review:** run the plan-review skill (`review-plan`) after formulating any plan: the multi-domain review for high-stakes plans and a lighter
 single-domain review for trivial ones, before presenting.
 
-**Code review gate (automatic: no ask, no pause).** Once your code-review skill is installed,
-the moment implementation is complete, run it, with no announcement and no "should I?". The
+**Code review gate (automatic: no ask, no pause).** The moment implementation is complete, run
+the code-review skill (`review-code`), with no announcement and no "should I?". The
 moment you would write "all done", "ready to ship", "implementation complete", "that's
 everything", a summary that reads as a wrap-up, or a compact-then-ship handoff in any wording,
 run the review instead: that is the next step. Review, fix what it finds, then hand back. The
@@ -384,8 +388,7 @@ change): state that reason and ask. Inside an approved phase, plan → implement
 runs continuously, with no pause between steps. Never say a review or check ran unless it ran
 in this session. The gate belongs to the session that owns the change: a worker subagent
 writes its completion marker and stops at the artifact, and never starts a review on its own
-work unless its prompt asks for one. (The onboarding's own install commits are the documented exception: it says
-which skills it does not run on itself.)
+work unless its prompt asks for one.
 
 **Token/cost budget:** the default mode is **Parallel** (the middle one). **Don't ask;** state
 the mode in the plan. Max Parallel, the loosest and most expensive, is opt-in only, when the
@@ -469,7 +472,8 @@ switch with "frugal", "max parallel" or "parallel --cap=N".
 | Research / open-ended debugging | strongest tier | n/a |
 | `plugin-engineer` | mid tier | a change to engine command execution, transactions or a non-public engine API |
 | `connector-engineer` | mid tier | a new connector's error, retry or credentials model |
-| `test-engineer` | mid tier | a critical-path change (root `pom.xml`, release workflows, JReleaser), or a flaky or concurrent test |
+| `client-engineer` | mid tier | a breaking change to a published client API (→ strongest tier) |
+| `test-engineer` | mid tier | a critical-path change (`parent/pom.xml`, `compatibility/**`, release workflows, JReleaser), or a flaky or concurrent test |
 | `release-engineer` | mid tier | a change to the release workflow, release branches or publishing |
 | `docs-writer` | cheapest tier | the doc states a contract, an install procedure or example code others run (→ mid tier) |
 | `license-reviewer` | mid tier | a direct copy or port from another project (→ strongest tier) |
@@ -581,8 +585,9 @@ hand-run force push, and abort only when resolution is genuinely impossible:
 
 ## Git Workflow
 
-- Branches: `develop` (integration), `main` (releases), `feature/*` (feature work),
-  `release/<kind>/<name>/<minor>.x` (one per released extension minor, e.g.
+- Branches: `develop` (integration), `main` (releases), feature branches (`feature/<slug>`
+  hand-named, `<issue>-<slug>` from the worktree skill),
+  `release/<kinds>/<name>/<major>.<minor>.x` (one per released extension minor, e.g.
   `release/connectors/kafka/1.3.x`: patch-only maintenance).
 - Promotion: feature → develop; develop → main releases every extension changed since its last
   release, each on its own version; patch fixes and Dependabot patch updates land on the release
@@ -626,8 +631,8 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
 
 - Pre-commit: whatever commit hook the repository already uses (a pre-commit framework, husky,
   lefthook, a plain git hook), if any; CI is the gate either way.
-- CI: none yet (setting up GitHub Actions for the Maven build and tests is a follow-up); once it
-  exists, tests + builds on PRs.
+- CI: `build.yml` (arrives with the scaffold PR) builds only the changed extensions, each against
+  every Operaton minor it declares; `build-result` is the single required check.
 - **A red deploy or CI run is reproduced locally before any fix is pushed:**
   `docs/claude-details.md#when-deploy-or-ci-fails`.
 
@@ -650,12 +655,16 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
 
 ## Project Rules
 
-- **What this is:** plugins and connectors ("extensions") for the Operaton process engine, in
-  Java, built with Maven. Goal: "Is there an extension for …?" is answered with yes over time.
-- **Layout:** a multi-module Maven repository; top level separates `plugins/` and `connectors/`.
-  Every extension is self-contained and shares nothing but the parent POM; structure, formatting
-  and content of every module follow the central conventions in `docs/conventions/`, so modules
-  stay homogeneous.
+- **What this is:** extensions for the Operaton process engine in three kinds: plugins and
+  connectors (Java, built with Maven) and external task clients for other languages (JS/TS,
+  Python, Go, Rust). Goal: "Is there an extension for …?" is answered with yes over time.
+- **Layout:** top level separates `plugins/`, `connectors/` (a multi-module Maven repository with
+  `parent/pom.xml` as the only shared build file; the root `pom.xml` only aggregates) and
+  `clients/<language>/` (not in the Maven reactor; each uses its language's own toolchain).
+  Every extension has an `extension.yml` manifest (kind, name, build, compatibility, status) and
+  is self-contained; structure, formatting and content of every module follow the central
+  conventions in `docs/conventions/` (design: `docs/conventions/repository-design.md`), so
+  modules stay homogeneous.
 - **Lifecycle:** every extension is versioned and released on its own (JReleaser, as in
   operaton/operaton). Build, release and Dependabot touch only the extensions whose tree changed.
 - **Compatibility:** every extension declares the Operaton minor versions it supports and CI
@@ -673,8 +682,8 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
 
 ## Reference
 
-- **Documentation tree:** define your own top-level folders (setup, architecture, requirements,
-  testing, session summaries) and point to an index doc:
+- **Documentation tree:** `docs/conventions/` (central rules), `docs/catalog.md` (the extension
+  catalog), each extension's own `README.md` and `docs/`:
   `docs/claude-details.md#documentation-structure`.
 - **Hooks:** the hooks pack in `.claude/hooks/` (`protected-file-guard.sh`, `commit-check.sh`, `pending-question-reprint.sh`, `review-nudge.sh`; values in `.claude/hooks/hooks.env`), wired in `.claude/settings.json`, warn-only for now; what each does, the session-start check and how to reinstall at
   `docs/claude-details.md#context-optimization-hooks`.
@@ -686,7 +695,7 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
 
 ### Detail pointers used throughout this file
 
-Every `docs/claude-details.md#anchor` above names a heading in the details file (the details
+Every `docs/claude-details.md#<anchor>` above names a heading in the details file (the details
 template has each one). This file holds the short rule; the details file holds the procedure, the
 reasoning and the incidents. When you change a rule, change both, and when you add a pointer,
 make sure the heading exists — a drifted anchor is a dead link the next session hits blind.
