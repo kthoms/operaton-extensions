@@ -1,3 +1,5 @@
 # HumanMaxxing install record, written by tools/hm-lock.sh. Do not edit by hand.
 # item <path> <hash of the download's copy> <release version>
 item skills/worktree 77a18bde1dd2ef4ce31481341ce0c21d0b89d57b 0.1.1
+item templates/CLAUDE.template.md f753318e6aff807d69fe9625a2b66540bc62ce8c 0.1.1
+item templates/claude-details.template.md d74087922eaaec2f3f02a14aea09821674170742 0.1.1

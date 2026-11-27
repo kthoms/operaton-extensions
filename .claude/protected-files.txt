@@ -1,0 +1,5 @@
+# Protected files: one glob per line (from the repository's top; * and ? stay in one folder, **/ spans folders),
+# each file's reason on a # line above it. Read by the protected-file guard hook and the ship and review-code skills.
+# Always protected besides, listed or not: .claude/settings.json, .claude/settings.local.json, .claude/hooks/**, this file.
+# No files listed yet: the repository has no code. Add a file here when a silent change to it would be an incident
+# (for example the file that declares the supported Operaton version range).
