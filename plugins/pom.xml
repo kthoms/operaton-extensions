@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>process-test-coverage</module>
     <!-- extensions:end -->
   </modules>
 </project>

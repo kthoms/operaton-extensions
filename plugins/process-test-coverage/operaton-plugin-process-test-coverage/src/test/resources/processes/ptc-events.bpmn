@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" targetNamespace="http://operaton.org/extensions/test" id="d2">
+  <bpmn:message id="msg" name="go"/>
+  <bpmn:message id="msg2" name="go2"/>
+  <bpmn:process id="ptc-events" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="ebg"/>
+    <bpmn:eventBasedGateway id="ebg"/>
+    <bpmn:sequenceFlow id="fMsg" sourceRef="ebg" targetRef="catchMsg"/>
+    <bpmn:sequenceFlow id="fRecv" sourceRef="ebg" targetRef="recv"/>
+    <bpmn:intermediateCatchEvent id="catchMsg"><bpmn:messageEventDefinition messageRef="msg"/></bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="recv"><bpmn:messageEventDefinition messageRef="msg2"/></bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="f2" sourceRef="catchMsg" targetRef="end1"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="recv" targetRef="end2"/>
+    <bpmn:endEvent id="end1"/>
+    <bpmn:endEvent id="end2"/>
+  </bpmn:process>
+</bpmn:definitions>
