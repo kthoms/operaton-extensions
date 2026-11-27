@@ -6,6 +6,11 @@ Licensed under the Apache License, Version 2.0.
 Third-party code
 ================
 
-No third-party source code is included yet. Each port of code from another
-project is listed here with its origin and license, see
-docs/conventions/licensing-and-attribution.md.
+Each port of code from another project is listed here with its origin and license,
+see docs/conventions/licensing-and-attribution.md.
+
+- email-incident-notification-plugin
+  https://github.com/camunda-community-hub/email-incident-notification-plugin
+  Apache-2.0, Copyright 2020 "J-IT" IT-Dienstleistungs GesmbH, Vienna, Austria
+  Used in: plugins/incident-notifier (IncidentInfo, MessageRenderer, EmailChannel,
+  IncidentDispatcher, IncidentNotifyingHandler, IncidentNotifierPlugin)

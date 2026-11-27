@@ -1,0 +1,8 @@
+kind: plugin
+name: incident-notifier
+title: Incident Notifier Plugin
+description: Notifies operators about Operaton incidents by mail, webhook, Slack and Microsoft Teams with throttling.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

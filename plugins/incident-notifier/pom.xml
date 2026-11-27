@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.operaton.extensions</groupId>
+    <artifactId>operaton-extensions-parent</artifactId>
+    <version>1-SNAPSHOT</version>
+    <relativePath>../../parent/pom.xml</relativePath>
+  </parent>
+
+  <!-- Extension aggregator: holds the extension's version; never deployed. Metadata: extension.yml -->
+  <artifactId>operaton-plugin-incident-notifier-parent</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Operaton Incident Notifier Plugin</name>
+  <description>Notifies operators about Operaton incidents by mail, webhook, Slack and Microsoft Teams with throttling.</description>
+
+  <modules>
+    <module>operaton-plugin-incident-notifier</module>
+    <module>operaton-plugin-incident-notifier-spring-boot-starter</module>
+    <module>example</module>
+  </modules>
+
+  <properties>
+    <angus-mail.version>2.0.5</angus-mail.version>
+    <greenmail.version>2.1.8</greenmail.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <inherited>false</inherited>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

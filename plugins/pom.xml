@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>incident-notifier</module>
     <!-- extensions:end -->
   </modules>
 </project>
