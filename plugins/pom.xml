@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>history-kafka</module>
     <!-- extensions:end -->
   </modules>
 </project>
