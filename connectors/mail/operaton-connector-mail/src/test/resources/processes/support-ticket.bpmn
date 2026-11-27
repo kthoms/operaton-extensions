@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_ticket" targetNamespace="http://operaton.org/extensions/mail/test">
+  <bpmn:message id="Message_reply" name="ticket-reply" />
+  <bpmn:process id="ticket" isExecutable="true" operaton:historyTimeToLive="1">
+    <bpmn:startEvent id="start" />
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="wait" />
+    <bpmn:intermediateCatchEvent id="wait" name="Customer reply">
+      <bpmn:messageEventDefinition messageRef="Message_reply" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="f2" sourceRef="wait" targetRef="end" />
+    <bpmn:endEvent id="end" />
+  </bpmn:process>
+  <bpmn:process id="ticket-by-message" isExecutable="true" operaton:historyTimeToLive="1">
+    <bpmn:startEvent id="m_start">
+      <bpmn:messageEventDefinition messageRef="Message_new" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="m_f1" sourceRef="m_start" targetRef="task" />
+    <bpmn:userTask id="task" name="Answer request" />
+    <bpmn:sequenceFlow id="m_f2" sourceRef="task" targetRef="m_end" />
+    <bpmn:endEvent id="m_end" />
+  </bpmn:process>
+  <bpmn:message id="Message_new" name="new-request" />
+</bpmn:definitions>

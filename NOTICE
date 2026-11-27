@@ -6,6 +6,9 @@ Licensed under the Apache License, Version 2.0.
 Third-party code
 ================
 
-No third-party source code is included yet. Each port of code from another
-project is listed here with its origin and license, see
-docs/conventions/licensing-and-attribution.md.
+Each port of code from another project is listed here with its origin and
+license, see docs/conventions/licensing-and-attribution.md.
+
+- camunda-platform-7-mail (https://github.com/camunda-community-hub/camunda-platform-7-mail),
+  Apache-2.0: connector, request, response and provider classes and the Mail and
+  Attachment DTOs of connectors/mail (see connectors/mail/NOTICE).
