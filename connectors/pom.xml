@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>s3</module>
     <!-- extensions:end -->
   </modules>
 </project>

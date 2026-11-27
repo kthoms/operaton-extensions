@@ -21,7 +21,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
-| | | | |
+| [s3](../connectors/s3/README.md) | Store, fetch, list, copy, delete and presign objects on S3-compatible storage from BPMN processes. | 2.0, 2.1, 2.2 | incubating |
 
 ## Clients
 
@@ -51,7 +51,6 @@ contributor picks one, opens an issue, and moves it to the tables above with the
 | connector | `kafka` | Produce after commit; consume to start and correlate | fresh (Camunda 8 connectors are not reusable) |
 | connector | `jdbc` | Parameterised SQL query/update mapped to variables | fresh |
 | connector | `ai-llm` | LLM prompts with structured output, optional agent/tool loop (LangChain4j) | cibseven `connect/ai-agent` (Apache-2.0): port the core |
-| connector | `s3` | Put, get, list, delete, presign on S3-compatible storage | fresh |
 | client | `js` | TypeScript external task client | camunda/camunda-external-task-client-js (Apache-2.0): port with attribution |
 | client | `python` | Python external task client | camunda-community-hub/camunda-external-task-client-python3 (Apache-2.0): port with attribution |
 | client | `go` | Go external task client | citilinkru/camunda-client-go (MIT): port, keep the MIT notice |

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_s3-roundtrip" targetNamespace="http://operaton.org/extensions/s3/test">
+  <bpmn:process id="s3-roundtrip" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:serviceTask id="put" name="put">
+      <bpmn:extensionElements>
+        <operaton:connector>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">${objectKey}</operaton:inputParameter>
+          <operaton:inputParameter name="content">${document}</operaton:inputParameter>
+          <operaton:inputParameter name="contentType">${contentType}</operaton:inputParameter>
+          <operaton:inputParameter name="metadata"><operaton:map><operaton:entry key="owner">${owner}</operaton:entry></operaton:map></operaton:inputParameter>
+          <operaton:outputParameter name="putEtag">${etag}</operaton:outputParameter>
+          <operaton:outputParameter name="putVersionId">${versionId}</operaton:outputParameter>
+          <operaton:outputParameter name="putKey">${key}</operaton:outputParameter>
+        </operaton:inputOutput>
+          <operaton:connectorId>s3-put</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="presign" name="presign">
+      <bpmn:extensionElements>
+        <operaton:connector>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">${objectKey}</operaton:inputParameter>
+          <operaton:inputParameter name="expiresIn">PT10M</operaton:inputParameter>
+          <operaton:inputParameter name="fileName">${documentName}</operaton:inputParameter>
+          <operaton:outputParameter name="url">${url}</operaton:outputParameter>
+          <operaton:outputParameter name="expiresAt">${expiresAt}</operaton:outputParameter>
+        </operaton:inputOutput>
+          <operaton:connectorId>s3-presign</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="get" name="get">
+      <bpmn:extensionElements>
+        <operaton:connector>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">${objectKey}</operaton:inputParameter>
+          <operaton:outputParameter name="downloaded">${download.fileValue}</operaton:outputParameter>
+          <operaton:outputParameter name="text">${download.text}</operaton:outputParameter>
+          <operaton:outputParameter name="getContentType">${contentType}</operaton:outputParameter>
+          <operaton:outputParameter name="getLength">${contentLength}</operaton:outputParameter>
+          <operaton:outputParameter name="metadataJson">${metadataJson}</operaton:outputParameter>
+        </operaton:inputOutput>
+          <operaton:connectorId>s3-get</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="list" name="list">
+      <bpmn:extensionElements>
+        <operaton:connector>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="prefix">${prefix}</operaton:inputParameter>
+          <operaton:inputParameter name="maxKeys">10</operaton:inputParameter>
+          <operaton:outputParameter name="keysJson">${keysJson}</operaton:outputParameter>
+          <operaton:outputParameter name="count">${count}</operaton:outputParameter>
+          <operaton:outputParameter name="truncated">${truncated}</operaton:outputParameter>
+        </operaton:inputOutput>
+          <operaton:connectorId>s3-list</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="archive" name="archive">
+      <bpmn:extensionElements>
+        <operaton:connector>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="sourceKey">${objectKey}</operaton:inputParameter>
+          <operaton:inputParameter name="targetKey">archive/${documentName}</operaton:inputParameter>
+          <operaton:inputParameter name="move">true</operaton:inputParameter>
+          <operaton:outputParameter name="archivedKey">${key}</operaton:outputParameter>
+          <operaton:outputParameter name="moved">${moved}</operaton:outputParameter>
+        </operaton:inputOutput>
+          <operaton:connectorId>s3-copy</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="cleanup" name="cleanup">
+      <bpmn:extensionElements>
+        <operaton:connector>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">archive/${documentName}</operaton:inputParameter>
+          <operaton:outputParameter name="deletedKey">${key}</operaton:outputParameter>
+        </operaton:inputOutput>
+          <operaton:connectorId>s3-delete</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f0" sourceRef="start" targetRef="put"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="put" targetRef="presign"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="presign" targetRef="get"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="get" targetRef="list"/>
+    <bpmn:sequenceFlow id="f4" sourceRef="list" targetRef="archive"/>
+    <bpmn:sequenceFlow id="f5" sourceRef="archive" targetRef="cleanup"/>
+    <bpmn:sequenceFlow id="f6" sourceRef="cleanup" targetRef="end"/>
+    <bpmn:endEvent id="end"/>
+  </bpmn:process>
+</bpmn:definitions>
