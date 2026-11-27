@@ -1,0 +1,17 @@
+# Local services for running the example: docker compose up -d --wait
+# One PostgreSQL server with two databases: "operaton" (the engine) and "business" (created by initdb/01-business.sql).
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: operaton
+      POSTGRES_USER: operaton
+      POSTGRES_PASSWORD: operaton
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./initdb/01-business.sql:/docker-entrypoint-initdb.d/01-business.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U operaton -d operaton && psql -U operaton -d business -c 'select 1'"]
+      interval: 5s
+      retries: 10

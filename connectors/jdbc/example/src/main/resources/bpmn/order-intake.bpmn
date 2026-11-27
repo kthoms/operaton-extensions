@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_order_intake" targetNamespace="http://operaton.org/extensions/jdbc/example">
+  <bpmn:process id="order-intake" name="Order intake" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="orderReceived" name="Order received">
+      <bpmn:outgoing>flowToLookup</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="lookUpCustomer" name="Look up customer">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="sql">SELECT id, name, credit_limit, active FROM customer WHERE id = :customerId</operaton:inputParameter>
+            <operaton:inputParameter name="customerId">${customerId}</operaton:inputParameter>
+            <operaton:inputParameter name="resultFormat">SINGLE_ROW</operaton:inputParameter>
+            <operaton:inputParameter name="allowEmpty">true</operaton:inputParameter>
+            <operaton:inputParameter name="columnCase">lower</operaton:inputParameter>
+            <operaton:outputParameter name="customer">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>flowToLookup</bpmn:incoming>
+      <bpmn:outgoing>flowToKnown</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="customerKnown" name="Customer known and active?" default="flowUnknown">
+      <bpmn:incoming>flowToKnown</bpmn:incoming>
+      <bpmn:outgoing>flowActive</bpmn:outgoing>
+      <bpmn:outgoing>flowUnknown</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="withinLimit" name="Within credit limit?" default="flowOverLimit">
+      <bpmn:incoming>flowActive</bpmn:incoming>
+      <bpmn:outgoing>flowInLimit</bpmn:outgoing>
+      <bpmn:outgoing>flowOverLimit</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="insertOrder" name="Insert order">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-update</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="sql">INSERT INTO sales_order (customer_id, total) VALUES (:customerId, :orderTotal)</operaton:inputParameter>
+            <operaton:inputParameter name="customerId">${customerId}</operaton:inputParameter>
+            <operaton:inputParameter name="orderTotal">${orderTotal}</operaton:inputParameter>
+            <operaton:inputParameter name="generatedKeyColumns">id</operaton:inputParameter>
+            <operaton:outputParameter name="orderId">${generatedKey}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>flowInLimit</bpmn:incoming>
+      <bpmn:outgoing>flowToPlaced</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="orderPlaced" name="Order placed">
+      <bpmn:incoming>flowToPlaced</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="rejectedUnknown" name="Rejected: customer unknown or inactive">
+      <bpmn:incoming>flowUnknown</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="rejectedLimit" name="Rejected: credit limit exceeded">
+      <bpmn:incoming>flowOverLimit</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flowToLookup" sourceRef="orderReceived" targetRef="lookUpCustomer"/>
+    <bpmn:sequenceFlow id="flowToKnown" sourceRef="lookUpCustomer" targetRef="customerKnown"/>
+    <bpmn:sequenceFlow id="flowActive" name="yes" sourceRef="customerKnown" targetRef="withinLimit">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${customer != null &amp;&amp; customer.active}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flowUnknown" name="no" sourceRef="customerKnown" targetRef="rejectedUnknown"/>
+    <bpmn:sequenceFlow id="flowInLimit" name="yes" sourceRef="withinLimit" targetRef="insertOrder">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${orderTotal &lt;= customer.credit_limit}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flowOverLimit" name="no" sourceRef="withinLimit" targetRef="rejectedLimit"/>
+    <bpmn:sequenceFlow id="flowToPlaced" sourceRef="insertOrder" targetRef="orderPlaced"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="order-intake">
+      <bpmndi:BPMNShape id="orderReceived_di" bpmnElement="orderReceived">
+        <dc:Bounds x="152" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="131" y="145" width="79" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lookUpCustomer_di" bpmnElement="lookUpCustomer">
+        <dc:Bounds x="240" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="customerKnown_di" bpmnElement="customerKnown" isMarkerVisible="true">
+        <dc:Bounds x="395" y="95" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="378" y="65" width="84" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="withinLimit_di" bpmnElement="withinLimit" isMarkerVisible="true">
+        <dc:Bounds x="505" y="95" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="492" y="65" width="76" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="insertOrder_di" bpmnElement="insertOrder">
+        <dc:Bounds x="620" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="orderPlaced_di" bpmnElement="orderPlaced">
+        <dc:Bounds x="782" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="768" y="145" width="65" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="rejectedUnknown_di" bpmnElement="rejectedUnknown">
+        <dc:Bounds x="402" y="232" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="345" y="275" width="150" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="rejectedLimit_di" bpmnElement="rejectedLimit">
+        <dc:Bounds x="512" y="232" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="500" y="275" width="60" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flowToLookup_di" bpmnElement="flowToLookup">
+        <di:waypoint x="188" y="120"/><di:waypoint x="240" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowToKnown_di" bpmnElement="flowToKnown">
+        <di:waypoint x="340" y="120"/><di:waypoint x="395" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowActive_di" bpmnElement="flowActive">
+        <di:waypoint x="445" y="120"/><di:waypoint x="505" y="120"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="466" y="102" width="18" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowUnknown_di" bpmnElement="flowUnknown">
+        <di:waypoint x="420" y="145"/><di:waypoint x="420" y="232"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="428" y="185" width="15" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowInLimit_di" bpmnElement="flowInLimit">
+        <di:waypoint x="555" y="120"/><di:waypoint x="620" y="120"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="578" y="102" width="18" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowOverLimit_di" bpmnElement="flowOverLimit">
+        <di:waypoint x="530" y="145"/><di:waypoint x="530" y="232"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="538" y="185" width="15" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowToPlaced_di" bpmnElement="flowToPlaced">
+        <di:waypoint x="720" y="120"/><di:waypoint x="782" y="120"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
