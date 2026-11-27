@@ -1,0 +1,98 @@
+# Patch releases: every release/<kinds>/<name>/<major>.<minor>.x branch with changes since the last
+# tag of its line is released with release-extension.yml. Monthly and on demand.
+# See docs/conventions/repository-design.md#patch-releases-release-patchesyml.
+name: Release patches
+
+on:
+  schedule:
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: build and prepare everything, push and publish nothing'
+        type: boolean
+        required: true
+        default: true
+      branches:
+        description: 'Release branches to release instead of the detected ones (comma- or space-separated, e.g. release/connectors/kafka/1.3.x)'
+        type: string
+        required: false
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: release-patches
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    name: Detect release branches with changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      candidates: ${{ steps.detect.outputs.candidates }}
+      dry_run: ${{ steps.detect.outputs.dry_run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # all branches (origin/release/**) and tags
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Detect
+        id: detect
+        env:
+          OVERRIDE: ${{ inputs.branches }}
+          DRY_RUN: ${{ inputs.dry_run == true }}
+        run: |
+          if [ -n "$OVERRIDE" ]; then
+            ENTRIES=""
+            for branch in $(echo "$OVERRIDE" | tr ',' ' '); do
+              rest="${branch#release/}"
+              ext="${rest%/*}"
+              echo "$branch" | grep -Eq '^release/(plugins|connectors|clients)/[a-z0-9]+(-[a-z0-9]+)*/[0-9]+\.[0-9]+\.x$' &&
+                git rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null ||
+                { echo "::error::'$branch' is not an existing release branch"; exit 1; }
+              ENTRIES="$ENTRIES$(jq -cn --arg extension "$ext" --arg branch "$branch" '{extension: $extension, branch: $branch}')"$'\n'
+            done
+            CANDIDATES="$(printf '%s' "$ENTRIES" | jq -cs .)"
+          else
+            CANDIDATES="$(.github/scripts/release-info.sh patch-candidates origin)"
+          fi
+          {
+            echo "candidates=$CANDIDATES"
+            echo "dry_run=$DRY_RUN"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Release branches to release (dry run: $DRY_RUN)"
+            echo
+            echo "$CANDIDATES" | jq -r 'if length == 0 then "_none_" else .[] | "- `\(.branch)`" end'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Release
+    needs: detect
+    if: needs.detect.outputs.candidates != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.detect.outputs.candidates) }}
+    permissions:
+      contents: write
+      id-token: write # npm provenance and PyPI trusted publishing in release-extension.yml
+    uses: $/.github/workflows/release-extension.yml
+    with:
+      extension: ${{ matrix.extension }}
+      ref: ${{ matrix.branch }}
+      dry_run: ${{ needs.detect.outputs.dry_run == 'true' }}
+    secrets:
+      GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME }}
+      MAVENCENTRAL_PASSWORD: ${{ secrets.MAVENCENTRAL_PASSWORD }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

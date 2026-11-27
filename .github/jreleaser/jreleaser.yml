@@ -1,0 +1,84 @@
+# JReleaser configuration for the release of one Java extension (plugin or connector):
+# GitHub release + Maven Central deploy, signed. Used by .github/workflows/release-extension.yml.
+#
+# This is a template: .github/scripts/jreleaser-config.sh renders it per extension into
+# target/jreleaser/jreleaser.yml (__PROJECT_NAME__, __PROJECT_DESCRIPTION__,
+# __PROJECT_LONG_DESCRIPTION__ and __EXTENSION_PATH__ are filled in from extension.yml, because
+# JReleaser does not resolve name templates in project.name/description).
+#
+# Provided by the workflow:
+#   JRELEASER_PROJECT_VERSION   the release version (e.g. 1.3.0)
+#   -PextensionPath=<kinds>/<name>   property used in the tag and release names below
+#   JRELEASER_GITHUB_TOKEN, JRELEASER_GPG_*, JRELEASER_MAVENCENTRAL_USERNAME/PASSWORD, JRELEASER_DRY_RUN
+# Paths are relative to the repository root (--basedir .):
+#   target/jreleaser/release-notes.md   the external changelog written by .github/scripts/changelog.sh
+#   target/staging-deploy               the extension's <ext>/target/staging-deploy, copied there by
+#                                       the workflow so that this file needs no per-extension path
+project:
+  name: __PROJECT_NAME__
+  description: __PROJECT_DESCRIPTION__
+  longDescription: __PROJECT_LONG_DESCRIPTION__
+  links:
+    homepage: 'https://github.com/kthoms/operaton-extensions/tree/main/__EXTENSION_PATH__'
+    bugTracker: 'https://github.com/kthoms/operaton-extensions/issues'
+    license: 'https://github.com/kthoms/operaton-extensions/blob/main/LICENSE'
+    contribute: 'https://github.com/kthoms/operaton-extensions/blob/develop/CONTRIBUTING.md'
+  inceptionYear: '2026'
+  license: Apache-2.0
+  authors:
+    - Operaton Extensions contributors
+  vendor: Operaton Extensions
+  languages:
+    java:
+      groupId: org.operaton.extensions
+      version: '17'
+      multiProject: true
+  tags:
+    - 'operaton'
+    - 'bpmn'
+    - 'process automation'
+    - 'java'
+
+release: # https://jreleaser.org/guide/latest/reference/release/github.html
+  github:
+    owner: kthoms
+    name: operaton-extensions
+    # The workflow creates and pushes the tag (on the detached release commit) before JReleaser runs.
+    tagName: '{{extensionPath}}/v{{projectVersion}}'
+    releaseName: '{{extensionPath}} {{projectVersion}}'
+    skipTag: true
+    overwrite: false
+    sign: true
+    draft: false
+    prerelease:
+      enabled: false
+    issues:
+      enabled: false
+    changelog:
+      # Conventional-Commits changelog of the extension's folder only (.github/scripts/changelog.sh);
+      # JReleaser's own changelog would cover every commit of the repository.
+      external: 'target/jreleaser/release-notes.md'
+
+checksum:
+  algorithms:
+    - MD5
+    - SHA_256
+
+deploy:
+  maven:
+    mavenCentral:
+      sonatype:
+        active: RELEASE
+        applyMavenCentralRules: true
+        url: https://central.sonatype.com/api/v1/publisher
+        stagingRepositories:
+          - target/staging-deploy
+        retryDelay: 30
+        maxRetries: 99
+    pomchecker:
+      strict: false
+
+signing:
+  active: ALWAYS
+  pgp:
+    armored: true

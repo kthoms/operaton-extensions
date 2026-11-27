@@ -1,0 +1,45 @@
+# Path-based PR labels for actions/labeler (.github/workflows/label-pr.yml).
+# sync-labels: true in the workflow removes a label of this file when its paths no longer match.
+
+plugin:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'plugins/*/**'
+
+connector:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'connectors/*/**'
+
+client:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'clients/**'
+
+compatibility:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'compatibility/**'
+
+build:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'pom.xml'
+    - 'parent/**'
+    - 'plugins/pom.xml'
+    - 'connectors/pom.xml'
+    - 'mvnw'
+    - 'mvnw.cmd'
+    - '.mvn/**'
+    - 'tools/**'
+
+ci:
+- changed-files:
+  - any-glob-to-any-file:
+    - '.github/**'
+
+docs:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/*.md'
+    - 'docs/**'
