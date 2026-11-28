@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_payment-processing" targetNamespace="http://operaton.org/extensions/incident-notifier">
+  <bpmn:process id="payment-processing" name="Payment processing" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="orderReceived" name="Order received">
+      <bpmn:outgoing>toCharge</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="chargePayment" name="Charge payment" operaton:asyncBefore="true" operaton:delegateExpression="${paymentService}">
+      <bpmn:extensionElements>
+        <operaton:failedJobRetryTimeCycle>R1/PT0S</operaton:failedJobRetryTimeCycle>
+      </bpmn:extensionElements>
+      <bpmn:incoming>toCharge</bpmn:incoming>
+      <bpmn:outgoing>toEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="orderPaid" name="Order paid">
+      <bpmn:incoming>toEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="toCharge" sourceRef="orderReceived" targetRef="chargePayment" />
+    <bpmn:sequenceFlow id="toEnd" sourceRef="chargePayment" targetRef="orderPaid" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="payment-processing">
+      <bpmndi:BPMNShape id="orderReceived_di" bpmnElement="orderReceived">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="132" y="145" width="77" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="chargePayment_di" bpmnElement="chargePayment">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="orderPaid_di" bpmnElement="orderPaid">
+        <dc:Bounds x="392" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="383" y="145" width="54" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="toCharge_di" bpmnElement="toCharge">
+        <di:waypoint x="188" y="120" /><di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="toEnd_di" bpmnElement="toEnd">
+        <di:waypoint x="340" y="120" /><di:waypoint x="392" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

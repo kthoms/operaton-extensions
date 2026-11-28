@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+  extensions:
+    plugin:
+      incident-notifier:
+        throttle: PT30S
+        cockpit-base-url: http://localhost:8080
+        email:
+          host: localhost
+          port: 1025
+          from: operaton@example.org
+          to: ops@example.org
+          starttls: false
