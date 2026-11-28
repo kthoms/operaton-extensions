@@ -1,0 +1,435 @@
+# Releases one extension from one branch. Called by release.yml (minor releases from main) and
+# release-patches.yml (patch releases from release/<kinds>/<name>/<major>.<minor>.x).
+# See docs/conventions/repository-design.md#release and .github/workflows/README.md.
+#
+#   release        plan, set the release version, build + test (+ stage the Maven artifacts),
+#                  write the changelog, commit on a detached HEAD, tag, push the tag;
+#                  Java: JReleaser full-release (GitHub release + Maven Central, signed)
+#   publish-*      clients: npm (provenance), PyPI (trusted publishing), crates.io; Go: tag only
+#   github-release clients: JReleaser creates the GitHub release
+#   finalize       create (minor) or advance (patch) the release branch to the next patch version
+#
+# Dry run: when `dry_run` is true or a secret the extension's publishing needs is missing,
+# nothing is pushed or published; the release commit, tag and branch are only made locally.
+name: Release extension
+
+on:
+  workflow_call:
+    inputs:
+      extension:
+        description: 'Extension path, e.g. connectors/kafka'
+        type: string
+        required: true
+      ref:
+        description: 'Branch to release from: main (minor release) or release/<kinds>/<name>/<x>.<y>.x (patch release)'
+        type: string
+        required: true
+      dry_run:
+        description: 'Dry run: build and prepare everything, push and publish nothing'
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      GPG_PUBLIC_KEY:
+        required: false
+      GPG_PRIVATE_KEY:
+        required: false
+      GPG_PASSPHRASE:
+        required: false
+      MAVENCENTRAL_USERNAME:
+        required: false
+      MAVENCENTRAL_PASSWORD:
+        required: false
+      NPM_TOKEN:
+        required: false
+      CARGO_REGISTRY_TOKEN:
+        required: false
+    outputs:
+      version:
+        description: 'The released version'
+        value: ${{ jobs.release.outputs.version }}
+      tag:
+        description: 'The release tag'
+        value: ${{ jobs.release.outputs.tag }}
+      released:
+        description: "'true' when the release was published (not a dry run)"
+        value: ${{ jobs.finalize.outputs.released == 'true' }}
+      release_branch:
+        description: 'The release branch created (minor) or advanced (patch)'
+        value: ${{ jobs.release.outputs.release_branch }}
+      next_develop_version:
+        description: 'The next minor development version for develop (minor releases; empty for Go)'
+        value: ${{ jobs.release.outputs.next_develop_version }}
+
+permissions: {}
+
+jobs:
+  release:
+    name: "Release ${{ inputs.extension }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the tag; JReleaser creates the GitHub release
+    concurrency:
+      group: "release-${{ inputs.extension }}"
+      cancel-in-progress: false
+    outputs:
+      dry_run: ${{ steps.mode.outputs.dry_run }}
+      build: ${{ steps.plan.outputs.build }}
+      mode: ${{ steps.plan.outputs.mode }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      previous_tag: ${{ steps.plan.outputs.previous_tag }}
+      release_branch: ${{ steps.plan.outputs.release_branch }}
+      next_branch_version: ${{ steps.plan.outputs.next_branch_version }}
+      next_develop_version: ${{ steps.plan.outputs.next_develop_version }}
+      artifact: ${{ steps.plan.outputs.artifact }}
+    env:
+      EXT: ${{ inputs.extension }}
+      REF_NAME: ${{ inputs.ref }}
+    steps:
+      - name: Validate the inputs
+        run: |
+          echo "$EXT" | grep -Eq '^(plugins|connectors|clients)/[a-z0-9]+(-[a-z0-9]+)*$' ||
+            { echo "::error::'$EXT' is not an extension path (<kinds>/<name>)"; exit 1; }
+          case "$REF_NAME" in
+            main | "release/$EXT/"[0-9]*.[0-9]*.x) ;;
+            *) echo "::error::'$REF_NAME' is neither main nor a release branch of $EXT"; exit 1 ;;
+          esac
+
+      - name: Checkout ${{ inputs.ref }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false # pushes go through .github/scripts/git-remote.sh
+
+      - name: Plan the release
+        id: plan
+        run: |
+          .github/scripts/release-info.sh plan "$EXT" "$REF_NAME" | tee -a "$GITHUB_OUTPUT"
+          echo "artifact=release-$(echo "$EXT" | tr '/' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Dry run?
+        id: mode
+        env:
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          BUILD: ${{ steps.plan.outputs.build }}
+          HAS_GPG: ${{ secrets.GPG_PUBLIC_KEY != '' && secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
+          HAS_MAVENCENTRAL: ${{ secrets.MAVENCENTRAL_USERNAME != '' && secrets.MAVENCENTRAL_PASSWORD != '' }}
+          HAS_NPM: ${{ secrets.NPM_TOKEN != '' }}
+          HAS_CARGO: ${{ secrets.CARGO_REGISTRY_TOKEN != '' }}
+        run: |
+          case "$BUILD" in
+            maven) SECRETS_OK=$([ "$HAS_GPG" = true ] && [ "$HAS_MAVENCENTRAL" = true ] && echo true || echo false) ;;
+            npm) SECRETS_OK="$HAS_NPM" ;;
+            cargo) SECRETS_OK="$HAS_CARGO" ;;
+            *) SECRETS_OK=true ;; # python: trusted publishing, go: tag only
+          esac
+          DRY_RUN="$INPUT_DRY_RUN"
+          if [ "$SECRETS_OK" != true ] && [ "$DRY_RUN" != true ]; then
+            echo "::warning::Secrets for publishing a $BUILD extension are missing: running as a dry run"
+            DRY_RUN=true
+          fi
+          echo "dry_run=$DRY_RUN" >> "$GITHUB_OUTPUT"
+          echo "secrets_ok=$SECRETS_OK" >> "$GITHUB_OUTPUT"
+          echo "Release of $EXT from $REF_NAME: dry run = $DRY_RUN" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up JDK 21
+        if: steps.plan.outputs.build == 'maven'
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Download Maven (retried; the distribution download is occasionally flaky)
+        if: steps.plan.outputs.build == 'maven'
+        run: for attempt in 1 2 3 4 5; do ./mvnw -B -q -v && exit 0; echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10)); done; exit 1
+      - name: Set up Node.js 22
+        if: steps.plan.outputs.build == 'npm'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Set up Python 3.12
+        if: steps.plan.outputs.build == 'python'
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Set up Go
+        if: steps.plan.outputs.build == 'go'
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: stable
+          cache: false
+      - name: Set up Rust
+        if: steps.plan.outputs.build == 'cargo'
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+
+      - name: Set the release version and write the changelog
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          PREVIOUS_TAG: ${{ steps.plan.outputs.previous_tag }}
+        run: .github/scripts/release-git.sh prepare "$EXT" "$VERSION" "$PREVIOUS_TAG" target/jreleaser/release-notes.md
+
+      - name: Build, test and stage (Maven)
+        if: steps.plan.outputs.build == 'maven'
+        run: |
+          ./mvnw -B -ntp -f "$EXT/pom.xml" -Prelease deploy \
+            -DaltDeploymentRepository="local::file:${GITHUB_WORKSPACE}/${EXT}/target/staging-deploy"
+          # JReleaser reads the staging repository from a fixed path (.github/jreleaser/jreleaser.yml)
+          rm -rf target/staging-deploy
+          mkdir -p target
+          cp -R "$EXT/target/staging-deploy" target/staging-deploy
+          # maven-metadata.xml is not part of a Maven Central upload (as in operaton's release)
+          find target/staging-deploy -name 'maven-metadata.xml*' -delete
+          find target/staging-deploy -type f | sed "s|^target/staging-deploy/||" | sort
+
+      - name: Build, test and package (client)
+        if: steps.plan.outputs.build != 'maven'
+        run: |
+          .github/scripts/client-build.sh "$EXT" install
+          .github/scripts/client-build.sh "$EXT" lint
+          .github/scripts/client-build.sh "$EXT" unit
+          .github/scripts/client-build.sh "$EXT" package
+
+      - name: Commit the release version and tag it
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: .github/scripts/release-git.sh commit-tag "$EXT" "$VERSION" "$TAG"
+
+      - name: Collect the client release files
+        if: steps.plan.outputs.build != 'maven'
+        env:
+          BUILD: ${{ steps.plan.outputs.build }}
+        run: |
+          mkdir -p target/release
+          cp target/jreleaser/release-notes.md target/release/
+          # the release commit's sources of the extension (cargo publish, npm build)
+          git archive --format=tar.gz -o target/release/source.tar.gz HEAD -- "$EXT"
+          case "$BUILD" in
+            npm) (cd "$EXT" && npm pack --pack-destination "$GITHUB_WORKSPACE/target/release") ;;
+            python) cp -R "$EXT/dist" target/release/dist ;;
+          esac
+          ls -lR target/release
+
+      - name: Upload the client release files
+        if: steps.plan.outputs.build != 'maven'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.plan.outputs.artifact }}
+          path: target/release/
+          retention-days: 7
+
+      - name: Prepare the release branch locally (dry run)
+        if: steps.mode.outputs.dry_run == 'true'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+          MODE: ${{ steps.plan.outputs.mode }}
+          RELEASE_BRANCH: ${{ steps.plan.outputs.release_branch }}
+          NEXT: ${{ steps.plan.outputs.next_branch_version }}
+        run: |
+          if [ "$MODE" = minor ]; then START="$TAG"; else START="origin/$RELEASE_BRANCH"; fi
+          .github/scripts/release-git.sh bump "$EXT" "$TAG" "$RELEASE_BRANCH" "$START" "$NEXT"
+          git log --oneline -3
+          git checkout -q --detach "$TAG"
+
+      - name: Push the tag
+        if: steps.mode.outputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: .github/scripts/git-remote.sh push "refs/tags/$TAG"
+
+      - name: Render the JReleaser configuration
+        env:
+          BUILD: ${{ steps.plan.outputs.build }}
+        run: |
+          if [ "$BUILD" = maven ]; then TEMPLATE=.github/jreleaser/jreleaser.yml; else TEMPLATE=.github/jreleaser/jreleaser-client.yml; fi
+          .github/scripts/jreleaser-config.sh "$TEMPLATE" "$EXT" target/jreleaser/jreleaser.yml
+
+      # Java extensions: GitHub release + Maven Central deploy, signed. Skipped when the signing or
+      # Maven Central secrets are missing (JReleaser cannot even dry-run the signing without them).
+      - name: Release with JReleaser (GitHub + Maven Central)
+        if: steps.plan.outputs.build == 'maven' && steps.mode.outputs.secrets_ok == 'true'
+        uses: jreleaser/release-action@90ac653bb9c79d11179e65d81499f3f34527dcd5 # 2.5.0
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ steps.plan.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME }}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.MAVENCENTRAL_PASSWORD }}
+          JRELEASER_DRY_RUN: ${{ steps.mode.outputs.dry_run }}
+        with:
+          arguments: full-release --config-file target/jreleaser/jreleaser.yml --basedir . -PextensionPath=${{ inputs.extension }}
+
+      - name: Archive the JReleaser output and the staging repository
+        if: always() && steps.plan.outputs.build == 'maven'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.plan.outputs.artifact }}-jreleaser
+          path: |
+            out/jreleaser/
+            target/staging-deploy/
+          retention-days: 10
+          if-no-files-found: ignore
+
+  publish-npm:
+    name: "Publish ${{ inputs.extension }} to npm"
+    needs: release
+    if: needs.release.outputs.build == 'npm'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - name: Download the release files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.release.outputs.artifact }}
+          path: release
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ needs.release.outputs.dry_run }}
+        run: |
+          set -- release/*.tgz
+          [ -f "$1" ] || { echo "::error::no npm package in the release files"; exit 1; }
+          if [ "$DRY_RUN" = true ]; then
+            npm publish "$1" --access public --dry-run
+          else
+            npm publish "$1" --access public --provenance
+          fi
+
+  publish-pypi:
+    name: "Publish ${{ inputs.extension }} to PyPI"
+    needs: release
+    if: needs.release.outputs.build == 'python' && needs.release.outputs.dry_run != 'true'
+    runs-on: ubuntu-latest
+    environment: pypi # the trusted publisher on PyPI is bound to this repository, workflow and environment
+    permissions:
+      id-token: write # PyPI trusted publishing
+    steps:
+      - name: Download the release files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.release.outputs.artifact }}
+          path: release
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          packages-dir: release/dist/
+
+  publish-cargo:
+    name: "Publish ${{ inputs.extension }} to crates.io"
+    needs: release
+    if: needs.release.outputs.build == 'cargo'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Download the release files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.release.outputs.artifact }}
+          path: release
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          DRY_RUN: ${{ needs.release.outputs.dry_run }}
+          EXT: ${{ inputs.extension }}
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          mkdir src && tar -xzf release/source.tar.gz -C src
+          cd "src/$EXT"
+          if [ "$DRY_RUN" = true ]; then cargo publish --dry-run; else cargo publish; fi
+
+  github-release:
+    name: "GitHub release of ${{ inputs.extension }}"
+    needs:
+      - release
+      - publish-npm
+      - publish-pypi
+      - publish-cargo
+    if: >-
+      always() && needs.release.result == 'success' && needs.release.outputs.build != 'maven'
+      && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # JReleaser creates the GitHub release
+    steps:
+      - name: Checkout the release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # in a dry run the tag was not pushed: use the branch instead
+          ref: ${{ needs.release.outputs.dry_run == 'true' && inputs.ref || needs.release.outputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download the release files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.release.outputs.artifact }}
+          path: target/release
+      - name: Prepare the JReleaser inputs
+        env:
+          EXT: ${{ inputs.extension }}
+        run: |
+          mkdir -p target/jreleaser
+          cp target/release/release-notes.md target/jreleaser/release-notes.md
+          .github/scripts/jreleaser-config.sh .github/jreleaser/jreleaser-client.yml "$EXT" target/jreleaser/jreleaser.yml
+      - name: Create the GitHub release with JReleaser
+        uses: jreleaser/release-action@90ac653bb9c79d11179e65d81499f3f34527dcd5 # 2.5.0
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ needs.release.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_DRY_RUN: ${{ needs.release.outputs.dry_run }}
+        with:
+          arguments: release --config-file target/jreleaser/jreleaser.yml --basedir . -PextensionPath=${{ inputs.extension }}
+
+  finalize:
+    name: "Release branch of ${{ inputs.extension }}"
+    needs:
+      - release
+      - github-release
+    if: >-
+      always() && needs.release.result == 'success' && needs.release.outputs.dry_run != 'true'
+      && (needs.github-release.result == 'success' || (needs.release.outputs.build == 'maven' && needs.github-release.result == 'skipped'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the release branch
+    outputs:
+      released: ${{ steps.push.outputs.released }}
+    steps:
+      - name: Checkout ${{ inputs.ref }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false # pushes go through .github/scripts/git-remote.sh
+      - name: Create or advance the release branch
+        id: push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXT: ${{ inputs.extension }}
+          TAG: ${{ needs.release.outputs.tag }}
+          MODE: ${{ needs.release.outputs.mode }}
+          RELEASE_BRANCH: ${{ needs.release.outputs.release_branch }}
+          NEXT: ${{ needs.release.outputs.next_branch_version }}
+        run: |
+          if [ "$MODE" = minor ]; then START="$TAG"; else START="origin/$RELEASE_BRANCH"; fi
+          .github/scripts/release-git.sh bump "$EXT" "$TAG" "$RELEASE_BRANCH" "$START" "$NEXT"
+          .github/scripts/git-remote.sh push "HEAD:refs/heads/$RELEASE_BRANCH"
+          echo "released=true" >> "$GITHUB_OUTPUT"
+          echo "Released $TAG; $RELEASE_BRANCH is at ${NEXT:-the tag}" >> "$GITHUB_STEP_SUMMARY"

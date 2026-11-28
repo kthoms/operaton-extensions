@@ -1,0 +1,225 @@
+# Merges (squash) open PRs that match a rule of .github/auto-merge.config.yml once every check is
+# green and no review thread is open. Only PRs to develop or release/** are considered, never main.
+# Adapted from operaton/operaton.
+name: Auto-Merge Eligible PRs
+
+on:
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: auto-merge
+  cancel-in-progress: false
+
+jobs:
+  auto-merge:
+    name: Auto-merge eligible PRs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: |
+            .github/auto-merge.config.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Collect and merge eligible PRs
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const { execSync } = require('child_process');
+
+            // Our own configuration file from the default branch (js-yaml is not available in
+            // github-script, so Python converts it to JSON).
+            const yamlContent = fs.readFileSync('.github/auto-merge.config.yml', 'utf8');
+            const config = JSON.parse(execSync(
+              `python3 -c "import yaml, json, sys; print(json.dumps(yaml.safe_load(sys.stdin.read())))"`,
+              { input: yamlContent, encoding: 'utf8' }
+            ));
+            const rules = config['auto-merge-rules'] || [];
+            console.log(`📋 Loaded ${rules.length} auto-merge rule(s)`);
+
+            // Hard guard, independent of the rules: never merge into main or anything else.
+            const ALLOWED_BASES = [/^develop$/, /^release\/.+$/];
+
+            function wildcardToRegex(pattern, anchored) {
+              const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+              const body = anchored
+                ? escaped.replace(/\*\*/g, '\u0000').replace(/\*/g, '[^/]*').replace(/\u0000/g, '.*')
+                : escaped.replace(/\*/g, '.*');
+              return new RegExp(anchored ? `^${body}$` : body);
+            }
+            const titleMatches = (title, pattern) => pattern === '*' || wildcardToRegex(pattern, false).test(title);
+            const baseMatches = (base, pattern) => wildcardToRegex(pattern, true).test(base);
+
+            // "Bump x from 1.2.3 to 1.3.0" -> 'minor'; null when the title has no versions
+            function updateType(title) {
+              const m = title.match(/from v?(\d+)(?:\.(\d+))?(?:\.(\d+))?\S* to v?(\d+)(?:\.(\d+))?(?:\.(\d+))?/);
+              if (!m) return null;
+              const [from, to] = [[m[1], m[2], m[3]], [m[4], m[5], m[6]]].map(v => v.map(x => parseInt(x || '0', 10)));
+              if (to[0] !== from[0]) return 'major';
+              if (to[1] !== from[1]) return 'minor';
+              return 'patch';
+            }
+
+            function matchesRule(pr, rule) {
+              if (pr.user.login !== rule.author) return false;
+              if (!rule.labels && !rule.includes && !rule.title) {
+                console.log(`  ⚠️  Ignoring a rule for ${rule.author} without labels, includes or title`);
+                return false;
+              }
+              if (rule.base && !rule.base.some(p => baseMatches(pr.base.ref, p))) return false;
+              const prLabels = pr.labels.map(l => l.name);
+              if (rule.labels && !rule.labels.every(l => prLabels.includes(l))) return false;
+              if (rule.title && !titleMatches(pr.title, rule.title)) return false;
+              if (rule.includes && !rule.includes.some(p => titleMatches(pr.title, p))) return false;
+              if (rule.excludes && rule.excludes.some(p => titleMatches(pr.title, p))) {
+                console.log(`  ❌ Title "${pr.title}" matches an exclude pattern`);
+                return false;
+              }
+              if (rule['update-types']) {
+                const type = updateType(pr.title);
+                if (type && !rule['update-types'].includes(type)) {
+                  console.log(`  ❌ ${type} update not allowed by the rule (${rule['update-types'].join(', ')})`);
+                  return false;
+                }
+              }
+              return true;
+            }
+
+            async function allChecksPassed(pr) {
+              try {
+                const sha = pr.head.sha;
+                const { data: status } = await github.rest.repos.getCombinedStatusForRef({
+                  owner: context.repo.owner, repo: context.repo.repo, ref: sha
+                });
+                const checkRuns = await github.paginate(github.rest.checks.listForRef, {
+                  owner: context.repo.owner, repo: context.repo.repo, ref: sha, per_page: 100
+                });
+                const hasStatusChecks = status.total_count > 0;
+                if (hasStatusChecks && status.state !== 'success') {
+                  console.log(`  ⏳/❌ Commit status is ${status.state}`);
+                  return false;
+                }
+                const notGreen = checkRuns.filter(
+                  run => run.status !== 'completed' || (run.conclusion !== 'success' && run.conclusion !== 'skipped' && run.conclusion !== 'neutral')
+                );
+                if (notGreen.length > 0) {
+                  console.log(`  ⏳/❌ ${notGreen.length} check(s) pending or failed: ${notGreen.map(r => r.name).join(', ')}`);
+                  return false;
+                }
+                if (!hasStatusChecks && checkRuns.length === 0) {
+                  console.log(`  ⚠️  No checks found - skipping for safety`);
+                  return false;
+                }
+                if (!checkRuns.some(run => run.name === 'build-result')) {
+                  console.log(`  ⚠️  The required check build-result has not run - skipping`);
+                  return false;
+                }
+                console.log(`  ✅ All checks passed`);
+                return true;
+              } catch (error) {
+                console.log(`  ⚠️  Error checking status: ${error.message}`);
+                return false;
+              }
+            }
+
+            async function hasUnresolvedThreads(pr) {
+              try {
+                const result = await github.graphql(`
+                  query($owner: String!, $repo: String!, $number: Int!) {
+                    repository(owner: $owner, name: $repo) {
+                      pullRequest(number: $number) {
+                        reviewThreads(first: 100) { nodes { isResolved isOutdated } }
+                      }
+                    }
+                  }`, { owner: context.repo.owner, repo: context.repo.repo, number: pr.number });
+                const open = result.repository.pullRequest.reviewThreads.nodes.filter(t => !t.isResolved && !t.isOutdated);
+                if (open.length > 0) {
+                  console.log(`  💬 ${open.length} unresolved review thread(s)`);
+                  return true;
+                }
+                return false;
+              } catch (error) {
+                console.log(`  ⚠️  Error checking review threads: ${error.message}`);
+                return true; // be safe
+              }
+            }
+
+            const pullRequests = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100
+            });
+            console.log(`\n🔍 Found ${pullRequests.length} open PR(s)`);
+
+            const eligible = [];
+            for (const listed of pullRequests) {
+              console.log(`\n📝 PR #${listed.number}: ${listed.title} (${listed.user.login} -> ${listed.base.ref})`);
+              if (listed.draft) { console.log('  ⏭️  Draft'); continue; }
+              if (!ALLOWED_BASES.some(re => re.test(listed.base.ref))) {
+                console.log(`  ⏭️  Base ${listed.base.ref} is never auto-merged`);
+                continue;
+              }
+              const rule = rules.find(r => matchesRule(listed, r));
+              if (!rule) { console.log('  ⏭️  No matching rule'); continue; }
+
+              // mergeable_state is only computed for single PR requests
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner, repo: context.repo.repo, pull_number: listed.number
+              });
+              if (pr.mergeable_state === 'dirty') {
+                console.log('  ⚠️  Merge conflicts');
+                if (pr.user.login === 'dependabot[bot]') {
+                  const comments = await github.paginate(github.rest.issues.listComments, {
+                    owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, per_page: 100
+                  });
+                  const body = '@dependabot recreate';
+                  if (!comments.some(c => c.user.login === 'github-actions[bot]' && c.body.trim() === body)) {
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body
+                    });
+                    console.log('  💬 Requested recreate from Dependabot');
+                  }
+                }
+                continue;
+              }
+              if (pr.mergeable_state === 'unknown') { console.log('  ⏳ Merge state unknown - next run'); continue; }
+              if (await hasUnresolvedThreads(pr)) continue;
+              if (await allChecksPassed(pr)) eligible.push(pr);
+            }
+
+            console.log(`\n🎯 ${eligible.length} PR(s) eligible for auto-merge`);
+            for (const pr of eligible) {
+              console.log(`\n🚀 PR #${pr.number}: ${pr.title}`);
+              try {
+                if (pr.user.login !== 'github-actions[bot]') {
+                  const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                    owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number, per_page: 100
+                  });
+                  if (!reviews.some(r => r.user.login === 'github-actions[bot]' && r.state === 'APPROVED')) {
+                    await github.rest.pulls.createReview({
+                      owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number, event: 'APPROVE',
+                      body: '✅ Auto-approved by auto-merge workflow - all checks passed and the PR matches .github/auto-merge.config.yml.'
+                    });
+                  }
+                }
+                const body = pr.body || '';
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number,
+                  merge_method: 'squash',
+                  sha: pr.head.sha,
+                  commit_title: `${pr.title} (#${pr.number})`,
+                  commit_message: `Auto-merged by auto-merge workflow\n\n${body.length > 500 ? body.substring(0, 500) + '...\n\n(truncated)' : body}`
+                });
+                console.log(`  ✅ Merged #${pr.number} (squash)`);
+              } catch (error) {
+                console.log(`  ❌ Error processing #${pr.number}: ${error.message}`);
+              }
+            }

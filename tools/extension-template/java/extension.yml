@@ -1,0 +1,8 @@
+kind: __KIND__
+name: __NAME__
+title: __TITLE__
+description: TODO one sentence — what problem this extension solves for an Operaton user.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

@@ -1,0 +1,70 @@
+# Labels pull requests by the paths they change (.github/labels/gh-labeler.yml) and by their
+# Conventional Commits title (.github/labels/pr-labeler.yml).
+name: Label PR
+
+on:  # zizmor: ignore[dangerous-triggers] pull_request_target: only sparse-checks out the base ref's .github/labels (never PR head) with persist-credentials: false
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+
+permissions: {}
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: Apply labels
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout the label configuration (base branch)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: |
+            .github/labels
+          persist-credentials: false
+
+      - name: Apply labels based on changed files
+        uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labels/gh-labeler.yml
+          sync-labels: true
+
+      - name: Apply labels based on the PR title
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const { execSync } = require('child_process');
+            // Our own base-branch file, converted with Python (js-yaml is not available here)
+            const yamlContent = fs.readFileSync('.github/labels/pr-labeler.yml', 'utf8');
+            const rules = JSON.parse(execSync(
+              `python3 -c "import yaml, json, sys; print(json.dumps(yaml.safe_load(sys.stdin.read())))"`,
+              { input: yamlContent, encoding: 'utf8' }
+            ));
+            const pr = context.payload.pull_request;
+            const title = pr.title || '';
+            const present = new Set(pr.labels.map(l => l.name));
+            const labels = Object.entries(rules)
+              .filter(([, patterns]) => patterns.some(p => new RegExp(p, 'i').test(title)))
+              .map(([label]) => label)
+              .filter(label => !present.has(label));
+            if (labels.length === 0) {
+              console.log(`No title label to add for "${title}"`);
+              return;
+            }
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels
+            });
+            console.log(`Added ${labels.join(', ')} for "${title}"`);
