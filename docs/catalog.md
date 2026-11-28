@@ -20,6 +20,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 | [`opentelemetry-tracing`](../plugins/opentelemetry-tracing/) | Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance. | 2.0, 2.1, 2.2 | incubating |
 | | | | |
 | [history-kafka](../plugins/history-kafka/README.md) | Publishes Operaton history events to Apache Kafka after the engine transaction commits (JSON or CloudEvents) | 2.0, 2.1, 2.2 | incubating |
+| [`micrometer-metrics`](../plugins/micrometer-metrics/) | Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer. | 2.0 - 2.2 | incubating |
 
 ## Connectors
 
@@ -47,6 +48,8 @@ contributor picks one, opens an issue, and moves it to the tables above with the
 | Kind | Extension | What it does | Source / reuse |
 |---|---|---|---|
 | plugin | `micrometer-metrics` | Micrometer metrics: engine metrics, job backlog, incidents, instance counters | idea from camunda-prometheus-process-engine-plugin (MIT, archived): fresh |
+| plugin | `process-test-coverage` | Coverage of BPMN flow nodes and sequence flows by tests, HTML report, coverage assertions | camunda-community-hub/camunda-process-test-coverage (Apache-2.0, archived): port with attribution |
+| plugin | `opentelemetry-tracing` | OpenTelemetry spans for activities, jobs and external tasks | fresh |
 | plugin | `history-kafka` | Streams history events to Kafka after commit (JSON / CloudEvents) | fresh |
 | plugin | `opentelemetry-tracing` | OpenTelemetry spans for activities, jobs and external tasks | fresh |
 | plugin | `incident-notifier` | Mail / webhook (Slack, Teams) notifications on incidents, with throttling | camunda-community-hub/email-incident-notification-plugin (Apache-2.0): port and generalise |

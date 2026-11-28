@@ -20,6 +20,7 @@
     <module>process-test-coverage</module>
     <module>opentelemetry-tracing</module>
     <module>history-kafka</module>
+    <module>micrometer-metrics</module>
     <!-- extensions:end -->
   </modules>
 </project>
