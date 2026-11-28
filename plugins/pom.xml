@@ -19,6 +19,7 @@
     <module>incident-notifier</module>
     <module>process-test-coverage</module>
     <module>opentelemetry-tracing</module>
+    <module>history-kafka</module>
     <!-- extensions:end -->
   </modules>
 </project>

@@ -1,0 +1,8 @@
+kind: plugin
+name: history-kafka
+title: History Kafka Plugin
+description: Publishes Operaton history events to Apache Kafka after the engine transaction commits.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

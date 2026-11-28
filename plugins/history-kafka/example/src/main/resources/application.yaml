@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+  extensions:
+    plugin:
+      history-kafka:
+        bootstrap-servers: localhost:9092
+        topic: loan-history
+        event-types: [process-instance, activity-instance]
+        send-mode: sync
+        failure-policy: fail
