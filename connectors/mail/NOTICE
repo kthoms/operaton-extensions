@@ -1,0 +1,7 @@
+Operaton Mail connector
+
+Contains code ported from camunda-platform-7-mail
+  https://github.com/camunda-community-hub/camunda-platform-7-mail
+  License: Apache-2.0
+  Files: the send, poll and delete connector, request, response and provider classes, dto/Mail.java and
+         dto/Attachment.java, under operaton-connector-mail/src/main/java.

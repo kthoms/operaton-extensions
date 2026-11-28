@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+  extensions:
+    connector:
+      mail:
+        sender: support@localhost
+        sender-alias: Support Desk
+        smtp:
+          host: localhost
+          port: 1025          # Mailpit: replies are caught here
+        imap:
+          host: localhost
+          port: 3143          # GreenMail: the support mailbox
+          username: support
+          password: secret
+        inbound:
+          enabled: true
+          poll-interval: 5s
+          routes:
+            - name: support-requests
+              subject-pattern: "(?i)support|help|problem"
+              business-key-pattern: "\\[(T-\\d+)]"
+              process-definition-key: support-ticket

@@ -16,6 +16,7 @@
 
   <modules>
     <!-- extensions:begin -->
+    <module>mail</module>
     <!-- extensions:end -->
   </modules>
 </project>
