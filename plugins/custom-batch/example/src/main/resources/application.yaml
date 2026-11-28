@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+  sql:
+    init:
+      mode: always
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    history-level: full
+  extensions:
+    plugin:
+      custom-batch:
+        # keep the history of finished recalculation batches for a week
+        history-time-to-live:
+          recalculate-invoice-totals: P7D
+example:
+  auto-start: true
+  invoices: 1000

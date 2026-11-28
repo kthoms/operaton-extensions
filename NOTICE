@@ -43,3 +43,8 @@ see docs/conventions/licensing-and-attribution.md.
   https://github.com/camunda/camunda-external-task-client-js
   Apache-2.0, Copyright 2018-2025 Camunda Services GmbH
   Used in: clients/js (src/{client,task-service,variables,file,engine-service,errors,auth}.ts), ported to TypeScript and fetch; see clients/js/NOTICE
+
+- camunda-community-hub/camunda-platform-7-custom-batch
+  https://github.com/camunda-community-hub/camunda-platform-7-custom-batch
+  Apache-2.0
+  Used in: plugins/custom-batch (CustomBatchBuilder, CustomBatchJobHandler, AbstractCustomBatchJobHandler, CustomBatchConfiguration, CustomBatchPlugin, ItemCustomBatchJobHandler, internal/ConfigurationCodec), adapted to org.operaton and reworked; see plugins/custom-batch/NOTICE

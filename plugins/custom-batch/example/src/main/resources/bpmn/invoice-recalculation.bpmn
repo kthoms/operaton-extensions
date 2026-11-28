@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_invoice_recalculation" targetNamespace="http://operaton.org/extensions/custom-batch/example">
+  <bpmn:process id="invoice-recalculation" name="Invoice recalculation" isExecutable="true" operaton:historyTimeToLive="P7D">
+    <bpmn:startEvent id="totals-outdated" name="Invoice totals outdated">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="totals-outdated" targetRef="start-recalculation"/>
+    <bpmn:serviceTask id="start-recalculation" name="Start recalculation batch" operaton:delegateExpression="${startRecalculationDelegate}">
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="start-recalculation" targetRef="batch-started"/>
+    <bpmn:endEvent id="batch-started" name="Batch started">
+      <bpmn:incoming>f2</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_1">
+    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="invoice-recalculation">
+      <bpmndi:BPMNShape id="totals-outdated_di" bpmnElement="totals-outdated"><dc:Bounds x="152" y="102" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="130" y="145" width="80" height="27"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start-recalculation_di" bpmnElement="start-recalculation"><dc:Bounds x="250" y="80" width="100" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="batch-started_di" bpmnElement="batch-started"><dc:Bounds x="412" y="102" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="395" y="145" width="70" height="14"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1"><di:waypoint x="188" y="120"/><di:waypoint x="250" y="120"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2"><di:waypoint x="350" y="120"/><di:waypoint x="412" y="120"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

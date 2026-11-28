@@ -1,0 +1,16 @@
+Operaton Custom Batch Plugin
+Copyright 2026 the Operaton Extensions contributors
+
+Licensed under the Apache License, Version 2.0.
+
+Third-party code
+================
+
+- camunda-community-hub/camunda-platform-7-custom-batch
+  https://github.com/camunda-community-hub/camunda-platform-7-custom-batch
+  Apache-2.0
+  Ported (adapted to org.operaton and reworked) into operaton-plugin-custom-batch:
+  CustomBatchBuilder, CustomBatchJobHandler, AbstractCustomBatchJobHandler (from CustomBatchCreateJobsHandler),
+  CustomBatchConfiguration, CustomBatchPlugin (from CustomBatchHandlerPlugin), ItemCustomBatchJobHandler
+  (from FailsafeCustomBatchJobHandler), internal/ConfigurationCodec (from CustomBatchConfigurationJsonHelper
+  and CustomBatchConfigurationTypeAdapter).

@@ -1,0 +1,8 @@
+kind: plugin
+name: custom-batch
+title: Custom Batch Plugin
+description: Framework for custom batch operations on the Operaton engine: typed batch job handlers, a builder, progress tracking, failure handling and cleanup.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating
