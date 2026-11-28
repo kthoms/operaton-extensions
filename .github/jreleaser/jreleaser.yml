@@ -70,6 +70,9 @@ deploy:
       sonatype:
         active: RELEASE
         applyMavenCentralRules: true
+        # The POMs are checked by the 'Check the POMs for Maven Central' step of release-extension.yml
+        # (the same pomchecker, with visible output). JReleaser's own run of it fails with no message.
+        verifyPom: false
         url: https://central.sonatype.com/api/v1/publisher
         stagingRepositories:
           - target/staging-deploy

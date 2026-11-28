@@ -203,6 +203,21 @@ jobs:
           find target/staging-deploy -name 'maven-metadata.xml*' -delete
           find target/staging-deploy -type f | sed "s|^target/staging-deploy/||" | sort
 
+      # The rules Maven Central applies to every POM (name, description, url, license, developers, scm,
+      # no SNAPSHOT, no repositories). The same pomchecker JReleaser would run, with its output visible.
+      - name: Check the POMs for Maven Central
+        if: steps.plan.outputs.build == 'maven'
+        run: |
+          found=0
+          while IFS= read -r pom; do
+            found=1
+            echo "::group::$pom"
+            .github/scripts/mvn-retry.sh -B -ntp -f "$pom" \
+              org.kordamp.maven:pomchecker-maven-plugin:1.15.0:check-maven-central -Dchecker.fail.on.warning=true
+            echo "::endgroup::"
+          done < <(find target/staging-deploy -name '*.pom' | sort)
+          [ "$found" = 1 ] || { echo "::error::no POM was staged for $EXT"; exit 1; }
+
       - name: Build, test and package (client)
         if: steps.plan.outputs.build != 'maven'
         run: |
@@ -342,7 +357,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           DRY_RUN: ${{ needs.release.outputs.dry_run }}
         run: |
-          set -- release/*.tgz
+          set -- ./release/*.tgz # './': npm reads 'release/x.tgz' as the GitHub shorthand owner/repo
           [ -f "$1" ] || { echo "::error::no npm package in the release files"; exit 1; }
           if [ "$DRY_RUN" = true ]; then
             npm publish "$1" --access public --dry-run
