@@ -667,6 +667,11 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
   modules stay homogeneous.
 - **Lifecycle:** every extension is versioned and released on its own (JReleaser, as in
   operaton/operaton). Build, release and Dependabot touch only the extensions whose tree changed.
+- **Maven coordinates:** all modules of a Java extension share the groupId `org.operaton.<kind>.<name>`
+  (`org.operaton.connector.jdbc`, `org.operaton.plugin.history-kafka`); artifactIds are
+  `<name>-<kind>[-suffix]` (`jdbc-connector`, `jdbc-connector-parent`, `jdbc-connector-spring-boot-starter`,
+  `jdbc-connector-example`) and the module folders carry the artifactId. Java packages stay
+  `org.operaton.extensions.<kind>.<name>`; `check-structure.sh` enforces the coordinates.
 - **npm scope:** npm packages of projects on the GitHub account `kthoms` are published to the npm
   organization `kthoms` (scope `@kthoms`, e.g. `@kthoms/operaton-external-task-client`).
 - **Local testing:** toolchains that are not installed (Go, Rust, others) are run from official
