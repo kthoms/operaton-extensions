@@ -1,0 +1,8 @@
+kind: client
+name: js
+title: TypeScript External Task Client
+description: External task client for Operaton in TypeScript for Node.js 22+ with long polling, typed variables and graceful shutdown.
+build: npm
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

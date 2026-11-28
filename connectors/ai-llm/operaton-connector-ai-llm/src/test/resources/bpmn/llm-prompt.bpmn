@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="definitions" targetNamespace="http://operaton.org/extensions/test">
+  <bpmn:process id="llm-prompt" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="summarize"/>
+    <bpmn:serviceTask id="summarize" name="Summarize ticket">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>llm-prompt</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="systemPrompt">You summarize support tickets of {{customer.name}}.</operaton:inputParameter>
+            <operaton:inputParameter name="userPrompt">Summarize: {{ticketText}}</operaton:inputParameter>
+            <operaton:inputParameter name="maxTokens">${maxTokens}</operaton:inputParameter>
+            <operaton:outputParameter name="summary">${text}</operaton:outputParameter>
+            <operaton:outputParameter name="summaryTokens">${totalTokens}</operaton:outputParameter>
+            <operaton:outputParameter name="summaryModel">${modelName}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="summarize" targetRef="review"/>
+    <bpmn:userTask id="review" name="Review summary"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="review" targetRef="end"/>
+    <bpmn:endEvent id="end"/>
+  </bpmn:process>
+</bpmn:definitions>

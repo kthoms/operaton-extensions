@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" targetNamespace="http://operaton.org/extensions/test" id="d1">
+  <bpmn:process id="ptc-gateway" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="gw"/>
+    <bpmn:exclusiveGateway id="gw" default="fSmall"/>
+    <bpmn:sequenceFlow id="fBig" sourceRef="gw" targetRef="review">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${big}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="fSmall" sourceRef="gw" targetRef="endSmall"/>
+    <bpmn:userTask id="review"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="review" targetRef="endBig"/>
+    <bpmn:endEvent id="endBig"/>
+    <bpmn:endEvent id="endSmall"/>
+  </bpmn:process>
+</bpmn:definitions>

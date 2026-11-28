@@ -1,0 +1,8 @@
+kind: connector
+name: jdbc
+title: JDBC connector
+description: Run parameterised SQL queries and updates against relational databases from BPMN processes.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

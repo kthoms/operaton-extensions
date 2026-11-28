@@ -1,0 +1,16 @@
+# Title-based PR labels, applied by .github/workflows/label-pr.yml in addition to the path-based
+# labels of gh-labeler.yml. Titles follow Conventional Commits with the extension as scope, e.g.
+#   feat(connector-kafka): add SASL support
+#   build(deps): bump org.apache.kafka:kafka-clients from 3.8.0 to 3.8.1   (Dependabot)
+# Each label lists regular expressions, matched case-insensitively against the PR title; a label
+# is added when one of them matches. Labels are only added here, never removed.
+
+plugin: ['^[a-z]+\(plugin-[^)]+\)!?:']
+connector: ['^[a-z]+\(connector-[^)]+\)!?:']
+client: ['^[a-z]+\(client-[^)]+\)!?:']
+docs: ['^docs(\([^)]*\))?!?:']
+ci: ['^ci(\([^)]*\))?!?:']
+build: ['^build(\([^)]*\))?!?:']
+dependencies: ['^[a-z]+\(deps(-dev)?\)!?:', '^deps(\([^)]*\))?!?:', '^bump ']
+compatibility: ['^[a-z]+\(compatibility\)!?:', 'operaton-bom']
+breaking: ['^[a-z]+(\([^)]*\))?!:']

@@ -1,0 +1,283 @@
+# CI for pull requests and pushes. Builds only the extensions that changed (all of them when a
+# shared build input changed) and verifies each against every Operaton minor it declares.
+# See docs/conventions/repository-design.md#ci-buildyml and .github/workflows/README.md.
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+      - 'release/**'
+  push:
+    branches:
+      - develop
+      - main
+      - 'release/**'
+  workflow_dispatch: # builds every extension
+
+permissions: {}
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Changed extensions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      extensions: ${{ steps.changes.outputs.extensions }}
+      compat: ${{ steps.changes.outputs.compat }}
+      full: ${{ steps.changes.outputs.full }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: The catalog is up to date
+        run: python3 tools/generate-catalog.py --check
+
+      - name: Compute the build matrices
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          case "$EVENT_NAME" in
+            pull_request) BASE="$PR_BASE_SHA" ;;
+            push) BASE="$PUSH_BEFORE" ;;
+            *) BASE="" ;; # workflow_dispatch: everything
+          esac
+          EXTENSIONS="$(.github/scripts/changed-extensions.sh "$BASE" HEAD)"
+          COMPAT="$(.github/scripts/compat-matrix.sh "$EXTENSIONS")"
+          FULL="$(.github/scripts/extension-matrix.sh "$EXTENSIONS")"
+          {
+            echo "extensions=$EXTENSIONS"
+            echo "compat=$COMPAT"
+            echo "full=$FULL"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Changed extensions"
+            echo
+            echo "$EXTENSIONS" | jq -r 'if length == 0 then "_none_" else .[] | "- `\(.)`" end'
+            echo
+            echo "### Compatibility matrix"
+            echo
+            echo "| Extension | Operaton | Build |"
+            echo "|---|---|---|"
+            echo "$COMPAT" | jq -r '.[] | "| `\(.extension)` | \(.operaton_version) | \(.build) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  compat:
+    name: "${{ matrix.extension }} @ Operaton ${{ matrix.operaton_version }}"
+    needs: changes
+    if: needs.changes.outputs.compat != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      # Building every extension at once (a change to parent/ or compatibility/) starts dozens of jobs
+      # that all download from Maven Central; it answers some with HTTP 429. A cap keeps that rare.
+      max-parallel: 10
+      matrix:
+        include: ${{ fromJSON(needs.changes.outputs.compat) }}
+    env:
+      EXT: ${{ matrix.extension }}
+      MODULES: ${{ matrix.modules }}
+      OPERATON_VERSION: ${{ matrix.operaton_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        if: matrix.build == 'maven'
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven # zizmor: ignore[cache-poisoning] build.yml never publishes; releases build in release-extension.yml without caches
+      - name: Download Maven (retried; the distribution download is occasionally flaky)
+        if: matrix.build == 'maven'
+        run: |
+          # Maven Central rate-limits the runners (HTTP 429): the later attempts use Google's mirror of it
+          for attempt in 1 2 3 4 5; do
+            if [ "$attempt" -ge 3 ]; then export MVNW_REPOURL=https://maven-central.storage-download.googleapis.com/maven2; fi
+            ./mvnw -B -q -v && exit 0
+            echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10))
+          done
+          exit 1
+      - name: Set up Node.js 22
+        if: matrix.build == 'npm'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Set up Python 3.12
+        if: matrix.build == 'python'
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Set up Go
+        if: matrix.build == 'go'
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: stable
+          cache: false
+      - name: Set up Rust
+        if: matrix.build == 'cargo'
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+
+      # Java: unit and engine tests of the artifact modules against the pinned Operaton version
+      - name: Test artifact modules
+        if: matrix.build == 'maven'
+        run: .github/scripts/mvn-retry.sh -B -ntp -pl "$MODULES" -am verify -Doperaton.version="$OPERATON_VERSION"
+
+      # Clients: integration tests against the operaton/operaton:<version> Docker image
+      - name: Start Operaton ${{ matrix.operaton_version }}
+        if: matrix.build != 'maven'
+        run: .github/scripts/operaton-engine.sh start "$OPERATON_VERSION"
+      - name: Integration tests
+        if: matrix.build != 'maven'
+        run: |
+          .github/scripts/client-build.sh "$EXT" install
+          .github/scripts/client-build.sh "$EXT" integration
+
+  full:
+    name: "${{ matrix.extension }} (full)"
+    needs: changes
+    if: needs.changes.outputs.full != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      # Building every extension at once (a change to parent/ or compatibility/) starts dozens of jobs
+      # that all download from Maven Central; it answers some with HTTP 429. A cap keeps that rare.
+      max-parallel: 10
+      matrix:
+        include: ${{ fromJSON(needs.changes.outputs.full) }}
+    env:
+      EXT: ${{ matrix.extension }}
+      OPERATON_VERSION: ${{ matrix.operaton_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the structure
+        run: .github/scripts/check-structure.sh "$EXT"
+
+      - name: Set up JDK 21
+        if: matrix.build == 'maven'
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven # zizmor: ignore[cache-poisoning] build.yml never publishes; releases build in release-extension.yml without caches
+      - name: Download Maven (retried; the distribution download is occasionally flaky)
+        if: matrix.build == 'maven'
+        run: |
+          # Maven Central rate-limits the runners (HTTP 429): the later attempts use Google's mirror of it
+          for attempt in 1 2 3 4 5; do
+            if [ "$attempt" -ge 3 ]; then export MVNW_REPOURL=https://maven-central.storage-download.googleapis.com/maven2; fi
+            ./mvnw -B -q -v && exit 0
+            echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10))
+          done
+          exit 1
+      - name: Set up Node.js 22
+        if: matrix.build == 'npm'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Set up Python 3.12
+        if: matrix.build == 'python'
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Set up Go
+        if: matrix.build == 'go'
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: stable
+          cache: false
+      - name: Set up Rust
+        if: matrix.build == 'cargo'
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+
+      # Java: the whole extension (aggregator, artifact modules, example with its Testcontainers
+      # ITs; Docker is available on the runner) at the default Operaton version of the parent POM
+      - name: Build the extension
+        if: matrix.build == 'maven'
+        run: .github/scripts/mvn-retry.sh -B -ntp -pl "$EXT" -am -amd verify
+
+      # Clients: lint, unit tests and integration tests at the newest declared Operaton version
+      - name: Install dependencies
+        if: matrix.build != 'maven'
+        run: .github/scripts/client-build.sh "$EXT" install
+      - name: Lint
+        if: matrix.build != 'maven'
+        run: .github/scripts/client-build.sh "$EXT" lint
+      - name: Unit tests
+        if: matrix.build != 'maven'
+        run: .github/scripts/client-build.sh "$EXT" unit
+      - name: Start Operaton ${{ matrix.operaton_version }}
+        if: matrix.build != 'maven'
+        run: .github/scripts/operaton-engine.sh start "$OPERATON_VERSION"
+      - name: Integration tests
+        if: matrix.build != 'maven'
+        run: .github/scripts/client-build.sh "$EXT" integration
+      - name: Package
+        if: matrix.build != 'maven'
+        run: .github/scripts/client-build.sh "$EXT" package
+
+      - name: Upload test reports
+        if: failure() && matrix.build == 'maven'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-reports-${{ strategy.job-index }}
+          path: |
+            ${{ matrix.extension }}/**/target/surefire-reports/
+            ${{ matrix.extension }}/**/target/failsafe-reports/
+          retention-days: 7
+
+  # The single required status check: green when every needed job succeeded or was skipped
+  # (no extension changed), red when any failed or was cancelled.
+  build-result:
+    name: build-result
+    needs:
+      - changes
+      - compat
+      - full
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Check the results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          if [ "$(echo "$NEEDS" | jq -r '.changes.result')" != success ]; then
+            echo "::error::Detecting the changed extensions failed"
+            exit 1
+          fi
+          if echo "$NEEDS" | jq -e 'to_entries | any(.value.result != "success" and .value.result != "skipped")' >/dev/null; then
+            echo "::error::At least one build job failed or was cancelled"
+            exit 1
+          fi
+          echo "All builds passed"

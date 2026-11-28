@@ -1,0 +1,27 @@
+# Local services for running the example: docker compose up -d --wait
+# S3: LocalStack on http://localhost:4566 (credentials test/test), bucket "documents" created at startup.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: operaton
+      POSTGRES_USER: operaton
+      POSTGRES_PASSWORD: operaton
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U operaton"]
+      interval: 5s
+      retries: 10
+  s3:
+    image: localstack/localstack:3.8
+    environment:
+      SERVICES: s3
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./localstack/init-bucket.sh:/etc/localstack/init/ready.d/10-bucket.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/init-done"]
+      interval: 5s
+      retries: 20

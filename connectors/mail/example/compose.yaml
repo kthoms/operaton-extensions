@@ -1,0 +1,42 @@
+# Local services for the support-ticket example: docker compose up -d --wait
+#   PostgreSQL   localhost:5432  (operaton / operaton)
+#   GreenMail    SMTP localhost:3025, IMAP localhost:3143, mailbox support@localhost (IMAP user support, password secret) (incoming mail)
+#   Mailpit      SMTP localhost:1025, web UI http://localhost:8025 (outgoing mail: replies land here)
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: operaton
+      POSTGRES_USER: operaton
+      POSTGRES_PASSWORD: operaton
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U operaton"]
+      interval: 5s
+      retries: 10
+  greenmail:
+    image: greenmail/standalone:2.1.8
+    environment:
+      GREENMAIL_OPTS: >-
+        -Dgreenmail.setup.test.smtp -Dgreenmail.setup.test.imap
+        -Dgreenmail.hostname=0.0.0.0
+        -Dgreenmail.users=support:secret@localhost
+        -Dgreenmail.auth.disabled
+    ports:
+      - "3025:3025"
+      - "3143:3143"
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/api/service/readiness || exit 1"]
+      interval: 5s
+      retries: 20
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      retries: 10

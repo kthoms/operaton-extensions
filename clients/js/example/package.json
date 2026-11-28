@@ -1,0 +1,15 @@
+{
+  "name": "order-shipping-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "tsx scripts/deploy-and-start.ts",
+    "worker": "tsx src/worker.ts"
+  },
+  "dependencies": {
+    "@kthoms/operaton-external-task-client": "file:.."
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0"
+  }
+}

@@ -1,0 +1,45 @@
+Operaton Extensions
+Copyright 2026 the Operaton Extensions contributors
+
+Licensed under the Apache License, Version 2.0.
+
+Third-party code
+================
+
+Each port of code from another project is listed here with its origin and license,
+see docs/conventions/licensing-and-attribution.md.
+
+- camunda-community-hub/email-incident-notification-plugin
+  https://github.com/camunda-community-hub/email-incident-notification-plugin
+  Apache-2.0, Copyright 2020 "J-IT" IT-Dienstleistungs GesmbH, Vienna, Austria
+  Used in: plugins/incident-notifier (IncidentInfo, MessageRenderer, EmailChannel, IncidentDispatcher, IncidentNotifyingHandler, IncidentNotifierPlugin)
+
+- camunda-community-hub/camunda-process-test-coverage
+  https://github.com/camunda-community-hub/camunda-process-test-coverage
+  Apache-2.0, Copyright (C) 2019 - 2024 Camunda
+  Used in: plugins/process-test-coverage (internal/CoverageExecutionListener.java, internal/CoverageParseListener.java, internal/CompensationCoverageHandler.java, model/ProcessModel.java, ProcessTestCoverageExtension.java, ExcludeFromProcessCoverage.java)
+
+- camunda-community-hub/camunda-platform-7-mail
+  https://github.com/camunda-community-hub/camunda-platform-7-mail
+  Apache-2.0
+  Used in: connectors/mail (connector, request, response and provider classes, Mail and Attachment DTOs; see connectors/mail/NOTICE)
+
+- cibseven/cibseven connect/ai-agent
+  https://github.com/cibseven/cibseven/tree/main/connect/ai-agent
+  Apache-2.0, Copyright CIB software GmbH and/or licensed to CIB software GmbH
+  Used in: connectors/ai-llm (AgentLoop, LongText)
+
+- camunda-community-hub/camunda-external-task-client-python3
+  https://github.com/camunda-community-hub/camunda-external-task-client-python3
+  Apache-2.0
+  Used in: clients/python (variables.py, task.py, service.py, client.py, aio.py, _api.py, _protocol.py, _outcome.py), modernised
+
+- citilinkru/camunda-client-go
+  https://github.com/citilinkru/camunda-client-go
+  MIT, Copyright (c) 2019 Citilink LLC; the MIT copyright and permission notice is kept in clients/go/NOTICE and clients/go/LICENSE-THIRD-PARTY
+  Used in: clients/go (subscription.go, variable.go, task.go), reworked
+
+- camunda/camunda-external-task-client-js
+  https://github.com/camunda/camunda-external-task-client-js
+  Apache-2.0, Copyright 2018-2025 Camunda Services GmbH
+  Used in: clients/js (src/{client,task-service,variables,file,engine-service,errors,auth}.ts), ported to TypeScript and fetch; see clients/js/NOTICE

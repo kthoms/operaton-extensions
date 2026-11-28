@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+    # the classification (a map) is stored as JSON, readable in Cockpit and in gateway expressions
+    default-serialization-format: application/json
+  extensions:
+    connector:
+      ai-llm:
+        default-model: triage
+        extract-retries: 2
+        models:
+          triage:
+            # Ollama from compose.yaml, through its OpenAI-compatible API (no API key needed).
+            # For OpenAI: base-url https://api.openai.com/v1, model gpt-4o-mini, api-key ${OPENAI_API_KEY}
+            provider: openai
+            base-url: ${LLM_BASE_URL:http://localhost:11434/v1}
+            model: ${LLM_MODEL:qwen2.5:1.5b}
+            api-key: ${LLM_API_KEY:}
+            temperature: 0.0
+            timeout: 120s
+            max-tokens: 200
+logging:
+  level:
+    # token usage of every model call
+    org.operaton.extensions.connector.aillm: debug

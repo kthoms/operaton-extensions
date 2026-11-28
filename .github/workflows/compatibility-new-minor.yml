@@ -1,0 +1,84 @@
+# Weekly: compares the Operaton minors on Maven Central (org.operaton.bpm:operaton-bom) with the
+# compatibility/operaton-<minor>/ folders and opens a PR to develop adding the folder of each new
+# minor. Supporting it is then a deliberate change per extension (its extension.yml).
+# See docs/conventions/compatibility.md.
+name: Compatibility - new Operaton minor
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: compatibility-new-minor
+  cancel-in-progress: false
+
+jobs:
+  new-minor:
+    name: Check for a new Operaton minor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the PR branch
+      pull-requests: write # open the PR
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          persist-credentials: false # pushes go through .github/scripts/git-remote.sh
+
+      - name: Read the Operaton versions on Maven Central
+        run: |
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/maven-metadata.xml" \
+            https://repo.maven.apache.org/maven2/org/operaton/bpm/operaton-bom/maven-metadata.xml
+
+      - name: Add the compatibility folders of new minors
+        id: add
+        run: |
+          NEW="$(.github/scripts/compat-new-minor.sh "$RUNNER_TEMP/maven-metadata.xml" --create)"
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" = '[]' ]; then
+            echo "No new Operaton minor" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "New Operaton minor(s): $(echo "$NEW" | jq -r 'map("\(.minor) (\(.version))") | join(", ")')" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Open a pull request
+        if: steps.add.outputs.new != '[]'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW: ${{ steps.add.outputs.new }}
+        run: |
+          MINORS="$(echo "$NEW" | jq -r 'map(.minor) | join(", ")')"
+          BRANCH="chore/compatibility-operaton-$(echo "$NEW" | jq -r 'map(.minor) | join("-")')"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1 ||
+             [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            echo "A branch or PR for Operaton $MINORS exists already ($BRANCH)"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b "$BRANCH"
+          git add compatibility/
+          git commit -q -m "build(compatibility): add Operaton $MINORS"
+          .github/scripts/git-remote.sh push "HEAD:refs/heads/$BRANCH"
+          LIST="$(echo "$NEW" | jq -r '.[] | "- `compatibility/operaton-\(.minor)/pom.xml` pinning \(.version)"')"
+          BODY_FILE="$RUNNER_TEMP/pr-body.md"
+          {
+            echo "Operaton $MINORS is available on Maven Central. This adds the compatibility folder(s):"
+            echo
+            echo "$LIST"
+            echo
+            echo 'Supporting a new minor is a deliberate change per extension: add it to the `compatibility`'
+            echo 'list of the extension'"'"'s `extension.yml` in its own PR and let CI verify it'
+            echo '(docs/conventions/compatibility.md).'
+            echo
+            echo '_Opened by compatibility-new-minor.yml. PRs created with the GITHUB_TOKEN do not trigger'
+            echo 'other workflows: close and reopen this PR to run the build._'
+          } > "$BODY_FILE"
+          gh pr create --base develop --head "$BRANCH" --title "build(compatibility): add Operaton $MINORS" \
+            --body-file "$BODY_FILE" --label compatibility ||
+            gh pr create --base develop --head "$BRANCH" --title "build(compatibility): add Operaton $MINORS" \
+              --body-file "$BODY_FILE" # the label may not exist yet

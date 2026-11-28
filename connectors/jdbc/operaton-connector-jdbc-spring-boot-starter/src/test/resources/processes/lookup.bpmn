@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_starter" targetNamespace="http://operaton.org/extensions/jdbc-starter-test">
+  <bpmn:process id="starter-lookup" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="lookup"/>
+    <bpmn:serviceTask id="lookup" name="Look up greeting">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="datasource">business</operaton:inputParameter>
+            <operaton:inputParameter name="sql">SELECT text FROM greeting WHERE id = :id</operaton:inputParameter>
+            <operaton:inputParameter name="id">${id}</operaton:inputParameter>
+            <operaton:inputParameter name="resultFormat">SINGLE_VALUE</operaton:inputParameter>
+            <operaton:outputParameter name="greeting">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="lookup" targetRef="wait"/>
+    <bpmn:userTask id="wait"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="wait" targetRef="end"/>
+    <bpmn:endEvent id="end"/>
+  </bpmn:process>
+</bpmn:definitions>

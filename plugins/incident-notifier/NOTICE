@@ -1,0 +1,13 @@
+Operaton Incident Notifier Plugin
+Copyright 2026 the Operaton Extensions contributors
+
+Licensed under the Apache License, Version 2.0.
+
+This extension is a port and generalisation of
+email-incident-notification-plugin
+https://github.com/camunda-community-hub/email-incident-notification-plugin
+Apache License 2.0, Copyright 2020 "J-IT" IT-Dienstleistungs GesmbH, Vienna, Austria
+
+Ported files (original header kept, "Ported from" line added): IncidentInfo,
+MessageRenderer, EmailChannel, IncidentDispatcher, IncidentNotifyingHandler,
+IncidentNotifierPlugin.

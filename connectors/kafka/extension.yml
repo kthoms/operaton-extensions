@@ -1,0 +1,8 @@
+kind: connector
+name: kafka
+title: Kafka connector
+description: Produce to and consume from Apache Kafka in Operaton processes: send records after the engine transaction commits, start processes and correlate messages from records.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

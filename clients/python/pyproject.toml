@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "operaton-external-task-client"
+version = "0.1.0"
+description = "External task client for Operaton (fetch-and-lock over REST) with sync and asyncio workers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "the Operaton Extensions contributors" }]
+keywords = ["operaton", "bpmn", "external-task", "worker", "camunda"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+dependencies = ["httpx>=0.27,<1"]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.6",
+  "mypy>=1.10",
+  "build>=1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/kthoms/operaton-extensions/tree/main/clients/python"
+Repository = "https://github.com/kthoms/operaton-extensions"
+Issues = "https://github.com/kthoms/operaton-extensions/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/operaton_external_task_client"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "LICENSE", "NOTICE", "CHANGELOG.md", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["integration: needs a running Operaton engine (OPERATON_URL), deselect with -m 'not integration'"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [".venv", "example/.venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "RUF"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src"]

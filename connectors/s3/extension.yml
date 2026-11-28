@@ -1,0 +1,8 @@
+kind: connector
+name: s3
+title: S3 Connector
+description: Store, fetch, list, copy, delete and presign objects on S3-compatible storage from BPMN processes.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

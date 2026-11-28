@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    history-level: full
+  extensions:
+    plugin:
+      micrometer-metrics:
+        # the process definition statistics query is off by default; this scenario wants the gauge
+        running-instances-enabled: true
+        poll-interval: 10s
+example:
+  simulator:
+    enabled: true

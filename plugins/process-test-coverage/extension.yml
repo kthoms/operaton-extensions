@@ -1,0 +1,8 @@
+kind: plugin
+name: process-test-coverage
+title: Process Test Coverage
+description: Measures which BPMN flow nodes and sequence flows your process tests execute, asserts a minimum coverage and writes an HTML and JSON report.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

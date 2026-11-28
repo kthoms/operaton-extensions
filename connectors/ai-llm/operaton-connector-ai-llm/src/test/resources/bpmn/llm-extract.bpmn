@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="definitions" targetNamespace="http://operaton.org/extensions/test">
+  <bpmn:process id="llm-extract" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="classify"/>
+    <bpmn:serviceTask id="classify" name="Classify e-mail">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>llm-extract</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="userPrompt">Classify this e-mail: {{emailText}}</operaton:inputParameter>
+            <operaton:inputParameter name="jsonSchema">{"type":"object","required":["category","urgency"],"properties":{"category":{"enum":["billing","technical","other"]},"urgency":{"enum":["low","high"]}}}</operaton:inputParameter>
+            <operaton:inputParameter name="retries">1</operaton:inputParameter>
+            <operaton:outputParameter name="classification">${result}</operaton:outputParameter>
+            <operaton:outputParameter name="classificationJson">${resultJson}</operaton:outputParameter>
+            <operaton:outputParameter name="attempts">${attempts}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="classify" targetRef="route"/>
+    <bpmn:exclusiveGateway id="route" default="normal"/>
+    <bpmn:sequenceFlow id="urgent" sourceRef="route" targetRef="escalate">
+      <bpmn:conditionExpression>${classification.urgency == 'high'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="normal" sourceRef="route" targetRef="handle"/>
+    <bpmn:userTask id="escalate" name="Escalate"/>
+    <bpmn:userTask id="handle" name="Handle"/>
+  </bpmn:process>
+</bpmn:definitions>

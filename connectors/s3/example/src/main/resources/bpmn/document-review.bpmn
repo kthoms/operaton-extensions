@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_document_review" targetNamespace="http://operaton.org/extensions/connector/s3/example">
+  <bpmn:process id="document-review" name="Document review" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="start" name="Document submitted">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="store" name="Store document" operaton:asyncBefore="true">
+      <bpmn:extensionElements>
+        <operaton:failedJobRetryTimeCycle>R1/PT1S</operaton:failedJobRetryTimeCycle>
+        <operaton:connector>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="key">incoming/${documentId}/${documentName}</operaton:inputParameter>
+            <operaton:inputParameter name="content">${document}</operaton:inputParameter>
+            <operaton:inputParameter name="contentType">${documentContentType}</operaton:inputParameter>
+            <operaton:inputParameter name="metadata">
+              <operaton:map>
+                <operaton:entry key="submitted-by">${submitter}</operaton:entry>
+              </operaton:map>
+            </operaton:inputParameter>
+            <operaton:outputParameter name="documentKey">${key}</operaton:outputParameter>
+            <operaton:outputParameter name="documentEtag">${etag}</operaton:outputParameter>
+          </operaton:inputOutput>
+          <operaton:connectorId>s3-put</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="link" name="Create review link">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="key">${documentKey}</operaton:inputParameter>
+            <operaton:inputParameter name="method">GET</operaton:inputParameter>
+            <operaton:inputParameter name="expiresIn">PT24H</operaton:inputParameter>
+            <operaton:inputParameter name="fileName">${documentName}</operaton:inputParameter>
+            <operaton:outputParameter name="reviewUrl">${url}</operaton:outputParameter>
+          </operaton:inputOutput>
+          <operaton:connectorId>s3-presign</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="review" name="Review document" operaton:candidateGroups="reviewers">
+      <bpmn:documentation>Review "${documentName}" (submitted by ${submitter}): ${reviewUrl}</bpmn:documentation>
+      <bpmn:extensionElements>
+        <operaton:formData>
+          <operaton:formField id="approved" label="Approve the document?" type="boolean"/>
+        </operaton:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="decision" name="Approved?" default="f6">
+      <bpmn:incoming>f4</bpmn:incoming>
+      <bpmn:outgoing>f5</bpmn:outgoing>
+      <bpmn:outgoing>f6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="archive" name="Archive document">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="sourceKey">${documentKey}</operaton:inputParameter>
+            <operaton:inputParameter name="targetKey">archive/${documentId}/${documentName}</operaton:inputParameter>
+            <operaton:inputParameter name="move">true</operaton:inputParameter>
+            <operaton:outputParameter name="archiveKey">${key}</operaton:outputParameter>
+          </operaton:inputOutput>
+          <operaton:connectorId>s3-copy</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f5</bpmn:incoming>
+      <bpmn:outgoing>f7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="discard" name="Delete rejected document" operaton:delegateExpression="${s3DeleteDelegate}">
+      <bpmn:extensionElements>
+        <operaton:inputOutput>
+          <operaton:inputParameter name="key">${documentKey}</operaton:inputParameter>
+        </operaton:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f6</bpmn:incoming>
+      <bpmn:outgoing>f8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="archived" name="Document archived">
+      <bpmn:incoming>f7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="rejected" name="Document rejected">
+      <bpmn:incoming>f8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="store"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="store" targetRef="link"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="link" targetRef="review"/>
+    <bpmn:sequenceFlow id="f4" sourceRef="review" targetRef="decision"/>
+    <bpmn:sequenceFlow id="f5" name="approved" sourceRef="decision" targetRef="archive">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${approved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f6" name="rejected" sourceRef="decision" targetRef="discard"/>
+    <bpmn:sequenceFlow id="f7" sourceRef="archive" targetRef="archived"/>
+    <bpmn:sequenceFlow id="f8" sourceRef="discard" targetRef="rejected"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_1">
+    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="document-review">
+      <bpmndi:BPMNShape id="S_start" bpmnElement="start"><dc:Bounds x="152" y="182" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="128" y="225" width="84" height="27"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_store" bpmnElement="store"><dc:Bounds x="240" y="160" width="100" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_link" bpmnElement="link"><dc:Bounds x="390" y="160" width="100" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_review" bpmnElement="review"><dc:Bounds x="540" y="160" width="100" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_decision" bpmnElement="decision" isMarkerVisible="true"><dc:Bounds x="695" y="175" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="696" y="151" width="48" height="14"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_archive" bpmnElement="archive"><dc:Bounds x="800" y="60" width="100" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_discard" bpmnElement="discard"><dc:Bounds x="800" y="260" width="100" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_archived" bpmnElement="archived"><dc:Bounds x="962" y="82" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="940" y="125" width="80" height="27"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_rejected" bpmnElement="rejected"><dc:Bounds x="962" y="282" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="940" y="325" width="80" height="27"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="E_f1" bpmnElement="f1"><di:waypoint x="188" y="200"/><di:waypoint x="240" y="200"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_f2" bpmnElement="f2"><di:waypoint x="340" y="200"/><di:waypoint x="390" y="200"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_f3" bpmnElement="f3"><di:waypoint x="490" y="200"/><di:waypoint x="540" y="200"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_f4" bpmnElement="f4"><di:waypoint x="640" y="200"/><di:waypoint x="695" y="200"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_f5" bpmnElement="f5"><di:waypoint x="720" y="175"/><di:waypoint x="720" y="100"/><di:waypoint x="800" y="100"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="725" y="130" width="48" height="14"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_f6" bpmnElement="f6"><di:waypoint x="720" y="225"/><di:waypoint x="720" y="300"/><di:waypoint x="800" y="300"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="725" y="255" width="42" height="14"/></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_f7" bpmnElement="f7"><di:waypoint x="900" y="100"/><di:waypoint x="962" y="100"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="E_f8" bpmnElement="f8"><di:waypoint x="900" y="300"/><di:waypoint x="962" y="300"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

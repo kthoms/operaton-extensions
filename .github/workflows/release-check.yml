@@ -1,0 +1,189 @@
+# Release check for pull requests to main: performs the release as a dry run on the result of the merge,
+# so that merging proves the release is ready — everything runs except the remote writes (pushing tags,
+# publishing, creating GitHub releases, pushing to develop).
+#
+#   source         the pull request must come from develop
+#   detect         the extensions the merge would release, and their release plans
+#   release        one dry-run release-extension.yml call per extension (check mode: throwaway signing
+#                  key, placeholder Maven Central credentials; builds, tests, stages, signs, changelog,
+#                  JReleaser validation, npm/cargo publish dry runs, local tag and release branch)
+#   prepare-develop  the commit the real release makes on develop afterwards, made locally
+#   release-check  the single result to require on main
+#
+# Run it by hand on any branch to try it out (workflow_dispatch). See .github/workflows/README.md.
+name: Release check
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      extensions:
+        description: 'Extensions to check instead of the detected ones (comma- or space-separated paths, e.g. connectors/kafka)'
+        type: string
+        required: false
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: "release-check-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  source:
+    name: Source branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: The pull request comes from develop
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then
+            echo "Manual run: nothing to check"
+            exit 0
+          fi
+          if [ "$HEAD_REF" != develop ] || [ "$HEAD_REPO" != "$REPO" ]; then
+            echo "::error::Only develop of $REPO can be merged into main (this pull request is from $HEAD_REPO:$HEAD_REF)"
+            exit 1
+          fi
+          echo "develop -> main"
+
+  detect:
+    name: Detect extensions to release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      extensions: ${{ steps.detect.outputs.extensions }}
+      plans: ${{ steps.detect.outputs.plans }}
+      merge_ref: ${{ steps.refs.outputs.merge_ref }}
+      develop_ref: ${{ steps.refs.outputs.develop_ref }}
+    steps:
+      - name: Refs to check
+        id: refs
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ -n "$PR" ]; then
+            # the result of merging develop into main, as the real release will see it
+            echo "merge_ref=refs/pull/$PR/merge" >> "$GITHUB_OUTPUT"
+            echo "develop_ref=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "merge_ref=$SHA" >> "$GITHUB_OUTPUT"
+            echo "develop_ref=$SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout the merge result
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.refs.outputs.merge_ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Detect
+        id: detect
+        env:
+          OVERRIDE: ${{ inputs.extensions }}
+        run: |
+          if [ -n "$OVERRIDE" ]; then
+            LIST=""
+            for ext in $(echo "$OVERRIDE" | tr ',' ' '); do
+              ext="${ext%/}"
+              echo "$ext" | grep -Eq '^(plugins|connectors|clients)/[a-z0-9]+(-[a-z0-9]+)*$' && [ -f "$ext/extension.yml" ] ||
+                { echo "::error::'$ext' is not an extension in this checkout"; exit 1; }
+              LIST="$LIST $ext"
+            done
+            # shellcheck disable=SC2086
+            EXTENSIONS="$(jq -cn '$ARGS.positional | unique' --args $LIST)"
+          else
+            EXTENSIONS="$(.github/scripts/release-info.sh extensions-to-release HEAD)"
+          fi
+          PLANS="$(for ext in $(echo "$EXTENSIONS" | jq -r '.[]'); do
+            .github/scripts/release-info.sh plan "$ext" main |
+              jq -R 'capture("^(?<k>[a-z_]+)=(?<v>.*)$") | {(.k): .v}' | jq -s --arg extension "$ext" 'add + {extension: $extension}'
+          done | jq -cs .)"
+          {
+            echo "extensions=$EXTENSIONS"
+            echo "plans=$PLANS"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### The merge would release"
+            echo
+            echo "$PLANS" | jq -r 'if length == 0 then "_nothing_" else .[] | "- `\(.extension)` \(.version) (`\(.tag)`)" end'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Dry run
+    needs: detect
+    if: needs.detect.outputs.extensions != '[]'
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        extension: ${{ fromJSON(needs.detect.outputs.extensions) }}
+    permissions:
+      contents: write # the called workflow's jobs declare it; a dry run never pushes
+      id-token: write # npm provenance dry run in release-extension.yml
+    uses: $/.github/workflows/release-extension.yml
+    with:
+      extension: ${{ matrix.extension }}
+      ref: main
+      source_ref: ${{ needs.detect.outputs.merge_ref }}
+      dry_run: true
+      check: true
+
+  prepare-develop:
+    name: Prepare develop
+    needs: detect
+    if: needs.detect.outputs.extensions != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.detect.outputs.develop_ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: The commit the release makes on develop (local, nothing is pushed)
+        env:
+          PLANS: ${{ needs.detect.outputs.plans }}
+        run: |
+          git config user.name "release-check"
+          git config user.email "release-check@example.invalid"
+          # the real release has tagged the extensions by now: tag them locally
+          for tag in $(echo "$PLANS" | jq -r '.[].tag'); do git tag "$tag"; done
+          .github/scripts/prepare-develop.sh "$PLANS"
+
+  release-check:
+    name: Release check
+    needs:
+      - source
+      - detect
+      - release
+      - prepare-develop
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Everything passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          if echo "$NEEDS" | jq -e 'to_entries | any(.value.result != "success" and .value.result != "skipped")' >/dev/null; then
+            echo "::error::The release is not ready: see the failed jobs"
+            exit 1
+          fi
+          echo "The release dry run passed"
