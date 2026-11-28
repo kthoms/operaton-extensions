@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+  extensions:
+    plugin:
+      history-opensearch:
+        uris: [http://localhost:9200]
+        index-prefix: operaton          # indices operaton-process-instances-2026.11, operaton-tasks-2026.11, ...
+        index-date-pattern: yyyy.MM
+        number-of-replicas: 0           # single-node demo cluster
+        send-mode: async                # queue and write in bulk from a background thread
+        flush-interval: 500ms
+        failure-policy: fail
+        include-variable-values: true   # demo data only; off by default because variables may hold personal data

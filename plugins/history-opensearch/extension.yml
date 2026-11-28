@@ -1,0 +1,8 @@
+kind: plugin
+name: history-opensearch
+title: History OpenSearch Plugin
+description: Indexes Operaton history as current-state documents into OpenSearch after the engine transaction commits.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating
