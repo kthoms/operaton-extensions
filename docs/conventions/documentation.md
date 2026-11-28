@@ -78,10 +78,11 @@ Put them in the extension's `docs/` folder and link them from the README:
 
 ## Catalog entry rule
 
-Every extension has exactly one row in [the catalog](../catalog.md), added in the pull request that
-introduces it and updated when its name, description, supported Operaton range or status changes.
-The row's text comes from `extension.yml` (`title`, `description`, `compatibility`, `status`).
-Status is `incubating`, `stable` or `deprecated`.
+Every extension has exactly one row in [the catalog](../catalog.md). The tables are **generated** from
+`extension.yml` (`title`, `description`, `compatibility`, `status`): run `tools/generate-catalog.py` in the
+pull request that adds an extension or changes one of those fields, and commit the result. CI runs
+`tools/generate-catalog.py --check` and fails when the catalog is out of date. Status is `incubating`,
+`stable` or `deprecated`. The backlog sections are written by hand; remove an idea when it is built.
 
 ## Style
 

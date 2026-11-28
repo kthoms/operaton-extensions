@@ -47,7 +47,7 @@ the rules.
    running the process end to end), per `docs/conventions/examples.md`.
 9. **Document.** README with the seven required sections; more under `docs/` when needed.
    `.github/scripts/check-structure.sh <kinds>/<name>` must pass.
-10. **Catalog.** Add the row to `docs/catalog.md` (and remove it from the backlog).
+10. **Catalog.** Run `tools/generate-catalog.py` (the catalog tables are generated from `extension.yml`) and remove the idea from the backlog in `docs/catalog.md`.
 11. **Verify the whole extension once:** `./mvnw -B -pl <kinds>/<name> -amd verify` (Docker
     needed for the example; on Colima set `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`).
 12. **Review, commit, PR.** Run the code review (review-code skill) and fix what it finds;

@@ -13,6 +13,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 
 ## Plugins
 
+<!-- catalog:plugins:begin -->
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
 | [History Kafka Plugin](../plugins/history-kafka/README.md) | Publishes Operaton history events to Apache Kafka after the engine transaction commits. | 2.0, 2.1, 2.2 | incubating |
@@ -20,9 +21,11 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 | [Micrometer Metrics Plugin](../plugins/micrometer-metrics/README.md) | Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer. | 2.0, 2.1, 2.2 | incubating |
 | [OpenTelemetry Tracing](../plugins/opentelemetry-tracing/README.md) | Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance. | 2.0, 2.1, 2.2 | incubating |
 | [Process Test Coverage](../plugins/process-test-coverage/README.md) | Measures which BPMN flow nodes and sequence flows your process tests execute, asserts a minimum coverage and writes an HTML and JSON report. | 2.0, 2.1, 2.2 | incubating |
+<!-- catalog:plugins:end -->
 
 ## Connectors
 
+<!-- catalog:connectors:begin -->
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
 | [AI LLM connector](../connectors/ai-llm/README.md) | Calls large language models from BPMN processes - prompts, schema-validated structured extraction and a bounded tool-calling agent, built on LangChain4j. | 2.0, 2.1, 2.2 | incubating |
@@ -30,17 +33,20 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 | [Kafka connector](../connectors/kafka/README.md) | Produce to and consume from Apache Kafka in Operaton processes: send records after the engine transaction commits, start processes and correlate messages from records. | 2.0, 2.1, 2.2 | incubating |
 | [Mail connector](../connectors/mail/README.md) | Sends, polls and deletes mail over SMTP/IMAP from BPMN, and starts or correlates processes from incoming mail. | 2.0, 2.1, 2.2 | incubating |
 | [S3 Connector](../connectors/s3/README.md) | Store, fetch, list, copy, delete and presign objects on S3-compatible storage from BPMN processes. | 2.0, 2.1, 2.2 | incubating |
+<!-- catalog:connectors:end -->
 
 ## Clients
 
+<!-- catalog:clients:begin -->
 | Language | Package | What it does | Operaton | Status |
 |---|---|---|---|---|
 | [TypeScript / JavaScript](../clients/js/README.md) | `@kthoms/operaton-external-task-client` (npm) | External task client for Operaton in TypeScript for Node.js 22+ with long polling, typed variables and graceful shutdown. | 2.0, 2.1, 2.2 | incubating |
 | [Python](../clients/python/README.md) | `operaton-external-task-client` (PyPI) | External task client for Operaton in Python (PyPI operaton-external-task-client) with sync and asyncio workers, typed variables, filters, retries, BPMN errors and back-off. | 2.0, 2.1, 2.2 | incubating |
 | [Go](../clients/go/README.md) | `github.com/kthoms/operaton-extensions/clients/go` | External task client for Operaton in Go - long-polling fetch-and-lock, typed variables, retries and BPMN errors, graceful shutdown, standard library only. | 2.0, 2.1, 2.2 | incubating |
 | [Rust](../clients/rust/README.md) | `operaton-external-task-client` (crates.io) | Async external task client for Operaton in Rust (crates.io operaton-external-task-client) on tokio and reqwest, with typed variables, filters, retries, BPMN errors, back-off and graceful shutdown. | 2.0, 2.1, 2.2 | incubating |
+<!-- catalog:clients:end -->
 
-Entries are added with each extension, in the pull request that introduces it.
+The tables are generated from the `extension.yml` manifests: run `tools/generate-catalog.py` after adding or changing an extension (`--check` verifies it).
 
 ## Proposed / backlog
 
