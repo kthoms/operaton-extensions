@@ -25,3 +25,7 @@ license, see docs/conventions/licensing-and-attribution.md.
 - camunda-platform-7-mail (https://github.com/camunda-community-hub/camunda-platform-7-mail),
   Apache-2.0: connector, request, response and provider classes and the Mail and
   Attachment DTOs of connectors/mail (see connectors/mail/NOTICE).
+- CIB seven connect/ai-agent
+  https://github.com/cibseven/cibseven/tree/main/connect/ai-agent
+  Apache-2.0, Copyright CIB software GmbH and/or licensed to CIB software GmbH
+  Used in: connectors/ai-llm (AgentLoop, LongText)

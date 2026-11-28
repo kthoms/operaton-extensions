@@ -1,0 +1,3 @@
+org.operaton.extensions.connector.aillm.connect.LlmPromptConnectorProvider
+org.operaton.extensions.connector.aillm.connect.LlmExtractConnectorProvider
+org.operaton.extensions.connector.aillm.connect.LlmAgentConnectorProvider

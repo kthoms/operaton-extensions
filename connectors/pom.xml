@@ -20,6 +20,7 @@
     <module>s3</module>
     <module>kafka</module>
     <module>jdbc</module>
+    <module>ai-llm</module>
     <!-- extensions:end -->
   </modules>
 </project>
