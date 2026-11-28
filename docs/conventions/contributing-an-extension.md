@@ -20,8 +20,8 @@
 7. **Document**: the README with all required sections ([documentation.md](documentation.md)), plus
    `docs/` where useful.
 8. **Example**: a runnable `example/` with Testcontainers ITs ([examples.md](examples.md)).
-9. **Catalog entry**: add the row to [docs/catalog.md](../catalog.md) in the same PR and remove the
-   backlog entry, if any.
+9. **Catalog entry**: run `tools/generate-catalog.py` (the tables of [docs/catalog.md](../catalog.md) are
+   generated from `extension.yml`) and remove the backlog entry, if any.
 10. **Open the PR** against `develop` from a `feature/*` branch. Title in Conventional Commit form,
     for example `feat(connector-kafka): add Kafka connector` or `feat(client-go): add extendLock`. State sources and licenses of
     reused code. Wait for the `build-result` check; address review comments.
