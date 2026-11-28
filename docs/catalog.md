@@ -35,7 +35,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 
 | Language | Package | What it does | Operaton | Status |
 |---|---|---|---|---|
-| [TypeScript / JavaScript](../clients/js/README.md) | `@operaton-extensions/external-task-client` (npm) | External task client for Operaton in TypeScript for Node.js 22+ with long polling, typed variables and graceful shutdown. | 2.0, 2.1, 2.2 | incubating |
+| [TypeScript / JavaScript](../clients/js/README.md) | `@kthoms/operaton-external-task-client` (npm) | External task client for Operaton in TypeScript for Node.js 22+ with long polling, typed variables and graceful shutdown. | 2.0, 2.1, 2.2 | incubating |
 | [Python](../clients/python/README.md) | `operaton-external-task-client` (PyPI) | External task client for Operaton in Python (PyPI operaton-external-task-client) with sync and asyncio workers, typed variables, filters, retries, BPMN errors and back-off. | 2.0, 2.1, 2.2 | incubating |
 | [Go](../clients/go/README.md) | `github.com/kthoms/operaton-extensions/clients/go` | External task client for Operaton in Go - long-polling fetch-and-lock, typed variables, retries and BPMN errors, graceful shutdown, standard library only. | 2.0, 2.1, 2.2 | incubating |
 | [Rust](../clients/rust/README.md) | `operaton-external-task-client` (crates.io) | Async external task client for Operaton in Rust (crates.io operaton-external-task-client) on tokio and reqwest, with typed variables, filters, retries, BPMN errors, back-off and graceful shutdown. | 2.0, 2.1, 2.2 | incubating |

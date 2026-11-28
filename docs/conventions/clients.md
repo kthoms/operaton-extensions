@@ -77,10 +77,14 @@ Releases are done by the release workflow, never by hand
 
 | Language | Target | Mechanism |
 |---|---|---|
-| `js` | npm `@operaton-extensions/external-task-client` | npm with provenance |
+| `js` | npm `@kthoms/operaton-external-task-client` | npm with provenance |
 | `python` | PyPI `operaton-external-task-client` | trusted publishing |
 | `go` | `github.com/kthoms/operaton-extensions/clients/go` | the tag `clients/go/v<version>` |
 | `rust` | crates.io `operaton-external-task-client` | `cargo publish` |
+
+npm packages of projects on the GitHub account `kthoms` are published to the npm organization
+`kthoms`: the package scope is `@kthoms` (`@kthoms/operaton-external-task-client`), published with
+`--access public`. `NPM_TOKEN` belongs to a member of that organization with publish rights.
 
 ## Ports and attribution
 

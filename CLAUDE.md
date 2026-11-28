@@ -667,6 +667,8 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
   modules stay homogeneous.
 - **Lifecycle:** every extension is versioned and released on its own (JReleaser, as in
   operaton/operaton). Build, release and Dependabot touch only the extensions whose tree changed.
+- **npm scope:** npm packages of projects on the GitHub account `kthoms` are published to the npm
+  organization `kthoms` (scope `@kthoms`, e.g. `@kthoms/operaton-external-task-client`).
 - **Local testing:** toolchains that are not installed (Go, Rust, others) are run from official
   Docker images (`golang:1.x`, `rust:1`, with the worktree mounted and a named cache volume), never
   installed on the machine; tests that need an external system (Kafka, PostgreSQL, LocalStack, Mailpit,

@@ -148,7 +148,7 @@ are present), and pushes and publishes nothing.
 |---|---|
 | `GPG_PUBLIC_KEY`, `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE` | signing the Maven Central deployment (armored keys) |
 | `MAVENCENTRAL_USERNAME`, `MAVENCENTRAL_PASSWORD` | Maven Central Portal user token |
-| `NPM_TOKEN` | publishing the JS client (`@operaton-extensions/external-task-client`) |
+| `NPM_TOKEN` | publishing the JS client (`@kthoms/operaton-external-task-client`) to the npm organization `kthoms`; the token's user needs publish rights there |
 | `CARGO_REGISTRY_TOKEN` | publishing the Rust client to crates.io |
 | — | PyPI uses trusted publishing: register this repository, workflow `release-extension.yml` and environment `pypi` as trusted publisher of `operaton-external-task-client` |
 

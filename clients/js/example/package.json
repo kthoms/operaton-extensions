@@ -7,7 +7,7 @@
     "worker": "tsx src/worker.ts"
   },
   "dependencies": {
-    "@operaton-extensions/external-task-client": "file:.."
+    "@kthoms/operaton-external-task-client": "file:.."
   },
   "devDependencies": {
     "tsx": "^4.20.0"

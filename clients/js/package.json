@@ -1,5 +1,5 @@
 {
-  "name": "@operaton-extensions/external-task-client",
+  "name": "@kthoms/operaton-external-task-client",
   "version": "0.1.0",
   "description": "External task client for Operaton in TypeScript: fetch-and-lock with long polling, typed variables, graceful shutdown",
   "license": "Apache-2.0",

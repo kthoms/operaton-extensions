@@ -93,7 +93,7 @@ Rules:
 clients/<language>/                 language: js | python | go | rust
   extension.yml                     kind: client, build: npm | python | go | cargo
   README.md, CHANGELOG.md, NOTICE (when ported), docs/
-  <the language's native project>   package.json + src/ (TypeScript, published as @operaton-extensions/external-task-client),
+  <the language's native project>   package.json + src/ (TypeScript, published as @kthoms/operaton-external-task-client),
                                     pyproject.toml + src/ (PyPI operaton-external-task-client),
                                     go.mod (module github.com/kthoms/operaton-extensions/clients/go),
                                     Cargo.toml + src/ (crates.io operaton-external-task-client)

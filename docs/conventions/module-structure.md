@@ -30,7 +30,7 @@ reactor, and has the manifest `kind: client`. Its native project and package nam
 
 | Language | Project | Published as |
 |---|---|---|
-| `js` | `package.json`, TypeScript | npm `@operaton-extensions/external-task-client` |
+| `js` | `package.json`, TypeScript | npm `@kthoms/operaton-external-task-client` |
 | `python` | `pyproject.toml` | PyPI `operaton-external-task-client` |
 | `go` | `go.mod` | module `github.com/kthoms/operaton-extensions/clients/go` |
 | `rust` | `Cargo.toml` | crates.io `operaton-external-task-client` |
