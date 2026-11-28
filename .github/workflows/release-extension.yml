@@ -143,7 +143,14 @@ jobs:
           distribution: 'temurin'
       - name: Download Maven (retried; the distribution download is occasionally flaky)
         if: steps.plan.outputs.build == 'maven'
-        run: for attempt in 1 2 3 4 5; do ./mvnw -B -q -v && exit 0; echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10)); done; exit 1
+        run: |
+          # Maven Central rate-limits the runners (HTTP 429): the later attempts use Google's mirror of it
+          for attempt in 1 2 3 4 5; do
+            if [ "$attempt" -ge 3 ]; then export MVNW_REPOURL=https://maven-central.storage-download.googleapis.com/maven2; fi
+            ./mvnw -B -q -v && exit 0
+            echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10))
+          done
+          exit 1
       - name: Set up Node.js 22
         if: steps.plan.outputs.build == 'npm'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -176,7 +183,7 @@ jobs:
       - name: Build, test and stage (Maven)
         if: steps.plan.outputs.build == 'maven'
         run: |
-          ./mvnw -B -ntp -f "$EXT/pom.xml" -Prelease deploy \
+          .github/scripts/mvn-retry.sh -B -ntp -f "$EXT/pom.xml" -Prelease deploy \
             -DaltDeploymentRepository="local::file:${GITHUB_WORKSPACE}/${EXT}/target/staging-deploy"
           # JReleaser reads the staging repository from a fixed path (.github/jreleaser/jreleaser.yml)
           rm -rf target/staging-deploy

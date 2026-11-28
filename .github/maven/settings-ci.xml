@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings for CI: Maven Central through Google's mirror of it. GitHub's runners share IP
+  addresses, and repo.maven.apache.org answers many of them with HTTP 429 for minutes at a time.
+  mvn-retry.sh alternates between this mirror and Central itself, so one host being unavailable
+  does not fail a build. Not used outside CI.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
+  <mirrors>
+    <mirror>
+      <id>central-gcs</id>
+      <name>Maven Central (Google Cloud Storage mirror)</name>
+      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
