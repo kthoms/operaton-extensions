@@ -61,7 +61,9 @@ case "$BUILD:$STAGE" in
     run cargo clippy --all-targets -- -D warnings ;;
   cargo:unit) run cargo test ;;
   cargo:integration) run cargo test --features integration ;;
-  cargo:package) run cargo package ;;
+  # --allow-dirty: the release version is committed after this stage (release-extension.yml), so the
+  # working tree holds the bumped Cargo.toml when the crate is packaged
+  cargo:package) run cargo package --allow-dirty ;;
 
   *) die "$EXT: no stage '$STAGE' for build '$BUILD'" ;;
 esac

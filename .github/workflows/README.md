@@ -73,6 +73,29 @@ into `run:` blocks through `env:`.
     entry of the new release branch (`dependabot-release-entry.sh`), and push one commit
     `chore(release): prepare next development versions` to `develop`. Not run in a dry run.
 
+### Release check (`release-check.yml`): the release as a dry run on every pull request to `main`
+
+Merging `develop` into `main` releases, so the pull request proves the release is ready first. The
+check performs the whole release on the *result of the merge* and stops only before the remote
+writes (pushing tags and branches, publishing, creating GitHub releases, pushing to `develop`).
+
+- **Triggers**: pull requests to `main` (also drafts: the check is the reason to open one early);
+  manual dispatch on any branch with an optional `extensions` override.
+- **Jobs**:
+  - `source` (**Source branch**): the pull request must come from `develop` of this repository.
+  - `detect`: checks out `refs/pull/<n>/merge`, lists the extensions the merge would release
+    (`release-info.sh extensions-to-release`) and their plans, as `release.yml` does.
+  - `release` (**Dry run**): one `release-extension.yml` call per extension with `dry_run: true`,
+    `check: true` and `source_ref` set to the merge result. Check mode signs with a throwaway GPG key
+    and uses placeholder Maven Central credentials, so JReleaser validates the whole Java release
+    (changelog, checksums, signing, Maven Central POM and file rules, GitHub release) without any
+    secret; clients run their install, lint, unit and package stages, `npm publish --dry-run` and
+    `cargo publish --dry-run`. Version, tag and release branch are made locally.
+  - `prepare-develop`: the commit the real release makes on `develop` (next versions, changelogs,
+    Dependabot entries of the release branches), made locally with `prepare-develop.sh`.
+  - `release-check` (**Release check**): the one result to require.
+- **Required checks on `main`**: `Source branch` and `Release check` (plus `build-result`).
+
 ### Release extension (`release-extension.yml`): reusable
 
 - **Trigger**: `workflow_call` with `extension`, `ref` (`main` or the extension's
@@ -131,7 +154,8 @@ are present), and pushes and publishes nothing.
 
 Repository settings the workflows rely on:
 
-- Branch protection on `develop`, `main`, `release/**`: require the `build-result` check.
+- Branch protection on `develop`, `main`, `release/**`: require the `build-result` check; on `main` also
+  `Release check` and `Source branch`, and require that the pull request comes from `develop`.
 - The release workflows push with the `GITHUB_TOKEN` to `develop` (next versions) and to
   `release/**` (release branches) and push tags: allow GitHub Actions to bypass the protection of
   these branches (or replace the token with a GitHub App token).
@@ -153,6 +177,8 @@ Repository settings the workflows rely on:
 | `changelog.sh <ext> <prev-tag> <version> [<notes>]` | Conventional-Commits changelog |
 | `set-version.sh <ext> <version>` | set the version in the extension's build file(s) |
 | `release-git.sh prepare\|commit-tag\|bump` | the local git steps of a release |
+| `prepare-develop.sh '<plans>'` | the commit a minor release makes on develop (used by `release.yml` and the release check) |
+| `mvn-retry.sh <maven args>` | the Maven wrapper, run again only when dependencies could not be downloaded |
 | `dependabot-release-entry.sh <ext> <branch>` | Dependabot entry of a release branch |
 | `compat-new-minor.sh <maven-metadata.xml> [--create]` | new Operaton minors and their folders |
 | `client-build.sh <ext> <stage>` | install / lint / unit / integration / package of a client |
