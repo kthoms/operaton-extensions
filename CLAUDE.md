@@ -667,7 +667,13 @@ inside, recent edits, uncommitted changes or commits not in the base branch is s
   modules stay homogeneous.
 - **Lifecycle:** every extension is versioned and released on its own (JReleaser, as in
   operaton/operaton). Build, release and Dependabot touch only the extensions whose tree changed.
-- **Compatibility:** every extension declares the Operaton minor versions it supports and CI
+- **Local testing:** toolchains that are not installed (Go, Rust, others) are run from official
+  Docker images (`golang:1.x`, `rust:1`, with the worktree mounted and a named cache volume), never
+  installed on the machine; tests that need an external system (Kafka, PostgreSQL, LocalStack, Mailpit,
+  an Operaton engine) use Testcontainers where the language has it, otherwise a container started
+  by the test. CI uses the native `setup-*` actions. Give every engine container its own host port
+  when several run at once.
+- **Compatibility:** Operaton 2.x only (1.x is out of scope). Every extension declares the Operaton minor versions it supports and CI
   verifies each one in a matrix (one entry per minor, x.y.0 included, at its latest patch); the
   versions are kept current by Dependabot.
 - **Sources:** candidates come from Camunda 7 community extensions, CIB seven and the kinds of

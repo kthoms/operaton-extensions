@@ -55,8 +55,12 @@ drops a locked task silently.
 - Unit tests need no engine.
 - Integration tests run against a **real engine**: they read `OPERATON_URL` (base URL of the
   engine) and `OPERATON_VERSION` (the image tag, `operaton/operaton:<version>`). Locally and in
-  CI the engine is started from that image (Testcontainers where the language has it, otherwise
-  `compose.yaml`); CI runs one job per minor in `compatibility`.
+  CI the engine is started from that image: with Testcontainers where the language has it,
+  otherwise by a container the test or script starts, or `compose.yaml`. CI runs one job per minor
+  in `compatibility`.
+- A toolchain that is not installed locally (Go, Rust, ...) runs from its official Docker image
+  (`golang:1.x`, `rust:1`), with the worktree mounted and a named cache volume; CI uses the native
+  `setup-*` actions.
 - Integration tests deploy a process, run the worker end to end and assert the process result.
   No sleeps; poll with a timeout.
 

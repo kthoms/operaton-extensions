@@ -4,6 +4,11 @@ An extension claims only the Operaton versions it has been verified against. The
 specified in [repository-design.md](repository-design.md#compatibility-verification); this
 document is the how-to.
 
+## Scope
+
+Operaton **2.x** is supported, starting at 2.0. Operaton 1.x is out of scope: there are no pins, no
+matrix entries and no claims for it, and new extensions are not tried against it.
+
 ## Declaring
 
 The `compatibility` list in the extension's `extension.yml` names the supported Operaton
@@ -17,7 +22,8 @@ CI builds one job per minor in the list. Java extensions are built against the p
 `compatibility/operaton-<minor>/pom.xml` (the script `.github/scripts/compat-matrix.sh` produces the
 matrix). Clients run their integration tests against the real engine image
 `operaton/operaton:<version>` (`OPERATON_VERSION`, `OPERATON_URL`, see [clients.md](clients.md)).
-To reproduce a Java job locally:
+To reproduce a Java job locally (Testcontainers needs Docker; on Colima set
+`TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`):
 
 ```bash
 ./mvnw -B -pl <kinds>/<name>/operaton-<kind>-<name> -am verify -Doperaton.version=<x.y.z>

@@ -37,7 +37,8 @@ the rules.
 6. **Implement** in the artifact module. Operaton dependencies are `provided`. Fail loudly
    (CLAUDE.md #1 rule). No static mutable state; thread-safe under the job executor.
 7. **Test.** Engine tests with `ProcessEngineExtension` (H2) for the engine-facing behaviour;
-   Testcontainers for the external system. Run against every declared minor:
+   Testcontainers for the external system (toolchains you do not have locally run from Docker images:
+   `golang:1.x`, `rust:1`). Run against every declared minor (2.x only; 1.x is out of scope):
    `./mvnw -B -pl <kinds>/<name>/operaton-<kind>-<name> -am verify -Doperaton.version=<pin>`
    with each pin from `compatibility/operaton-<minor>/pom.xml`. A minor that cannot be made to
    work is removed from `compatibility` (never claimed). Clients: unit tests plus integration
