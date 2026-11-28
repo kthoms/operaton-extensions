@@ -28,6 +28,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 |---|---|---|---|
 | [`mail`](../connectors/mail/) | Sends, polls and deletes mail over SMTP/IMAP from BPMN, and starts or correlates processes from incoming mail | 2.0, 2.1, 2.2 | incubating |
 | [s3](../connectors/s3/README.md) | Store, fetch, list, copy, delete and presign objects on S3-compatible storage from BPMN processes. | 2.0, 2.1, 2.2 | incubating |
+| [kafka](../connectors/kafka/README.md) | Produce to and consume from Apache Kafka in Operaton processes: send records after the engine transaction commits, start processes and correlate messages from records. | 2.0, 2.1, 2.2 | incubating |
 
 ## Clients
 
@@ -55,6 +56,7 @@ contributor picks one, opens an issue, and moves it to the tables above with the
 | plugin | `opentelemetry-tracing` | OpenTelemetry spans for activities, jobs and external tasks | fresh |
 | plugin | `incident-notifier` | Mail / webhook (Slack, Teams) notifications on incidents, with throttling | camunda-community-hub/email-incident-notification-plugin (Apache-2.0): port and generalise |
 | connector | `kafka` | Produce after commit; consume to start and correlate | fresh (Camunda 8 connectors are not reusable) |
+| connector | `mail` | Send, poll, delete mail over SMTP/IMAP; polling can start processes | camunda-community-hub/camunda-platform-7-mail (Apache-2.0): port with attribution |
 | connector | `jdbc` | Parameterised SQL query/update mapped to variables | fresh |
 | connector | `ai-llm` | LLM prompts with structured output, optional agent/tool loop (LangChain4j) | cibseven `connect/ai-agent` (Apache-2.0): port the core |
 | client | `js` | TypeScript external task client | camunda/camunda-external-task-client-js (Apache-2.0): port with attribution |

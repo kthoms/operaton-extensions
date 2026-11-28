@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+  extensions:
+    connector:
+      kafka:
+        bootstrap-servers: localhost:9092
+        subscriptions:
+          # an order-placed record starts the order process
+          - name: orders
+            topics: order-placed
+            action: start-process
+            process-definition-key: order-process
+            business-key: "$.orderId"
+            variables:
+              orderId: "$.orderId"
+              amount: "$.amount"
+              customer: "$.customer"
+              traceparent: "header:traceparent?"
+            on-poison: dead-letter
+            dead-letter-topic: order-placed.dlt
