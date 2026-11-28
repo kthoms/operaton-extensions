@@ -131,7 +131,7 @@ jobs:
       # Java: unit and engine tests of the artifact modules against the pinned Operaton version
       - name: Test artifact modules
         if: matrix.build == 'maven'
-        run: ./mvnw -B -ntp -pl "$MODULES" -am verify -Doperaton.version="$OPERATON_VERSION"
+        run: .github/scripts/mvn-retry.sh -B -ntp -pl "$MODULES" -am verify -Doperaton.version="$OPERATON_VERSION"
 
       # Clients: integration tests against the operaton/operaton:<version> Docker image
       - name: Start Operaton ${{ matrix.operaton_version }}
@@ -206,7 +206,7 @@ jobs:
       # ITs; Docker is available on the runner) at the default Operaton version of the parent POM
       - name: Build the extension
         if: matrix.build == 'maven'
-        run: ./mvnw -B -ntp -pl "$EXT" -am -amd verify
+        run: .github/scripts/mvn-retry.sh -B -ntp -pl "$EXT" -am -amd verify
 
       # Clients: lint, unit tests and integration tests at the newest declared Operaton version
       - name: Install dependencies
