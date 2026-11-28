@@ -17,6 +17,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
 | [History Kafka Plugin](../plugins/history-kafka/README.md) | Publishes Operaton history events to Apache Kafka after the engine transaction commits. | 2.0, 2.1, 2.2 | incubating |
+| [History OpenSearch Plugin](../plugins/history-opensearch/README.md) | Indexes Operaton history as current-state documents into OpenSearch after the engine transaction commits. | 2.0, 2.1, 2.2 | incubating |
 | [Incident Notifier Plugin](../plugins/incident-notifier/README.md) | Notifies operators about Operaton incidents by mail, webhook, Slack and Microsoft Teams with throttling. | 2.0, 2.1, 2.2 | incubating |
 | [Micrometer Metrics Plugin](../plugins/micrometer-metrics/README.md) | Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer. | 2.0, 2.1, 2.2 | incubating |
 | [OpenTelemetry Tracing](../plugins/opentelemetry-tracing/README.md) | Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance. | 2.0, 2.1, 2.2 | incubating |
@@ -71,7 +72,6 @@ contributor picks one, opens an issue, and moves it to the tables above with the
 | plugin | `mockito-helpers` | holunda-io c7-mockito (Apache-2.0): port |
 | plugin | `typed-variables` | idea from camunda-bpm-data (Apache-2.0) |
 | plugin | `correlation-inbox` (message inbox/outbox) | idea from holunda camunda-bpm-correlate |
-| plugin | `history-opensearch` | fresh |
 | plugin | `history-archive-s3` | fresh |
 | plugin | `variable-encryption` | fresh |
 | connector | `sftp`, `redis`, `mongodb`, `jms`, `aws-sqs-sns`, `aws-lambda` | fresh |
