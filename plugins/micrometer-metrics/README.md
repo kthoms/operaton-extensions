@@ -25,8 +25,8 @@ deliberately never used as a tag.
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-micrometer-metrics-spring-boot-starter</artifactId>
+  <groupId>org.operaton.plugin.micrometer-metrics</groupId>
+  <artifactId>micrometer-metrics-plugin-spring-boot-starter</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -38,8 +38,8 @@ every `ProcessEnginePlugin` bean to the engine.
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-micrometer-metrics</artifactId>
+  <groupId>org.operaton.plugin.micrometer-metrics</groupId>
+  <artifactId>micrometer-metrics-plugin</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -146,7 +146,7 @@ checks the metrics on `/actuator/prometheus` after running orders.
 
 ```bash
 ./mvnw -B -pl plugins/micrometer-metrics -amd verify     # Docker needed for the example IT
-./mvnw -B -pl plugins/micrometer-metrics/operaton-plugin-micrometer-metrics -am verify -Doperaton.version=2.1.6
+./mvnw -B -pl plugins/micrometer-metrics/micrometer-metrics-plugin -am verify -Doperaton.version=2.1.6
 ```
 
 Design notes and decisions (best guesses, made without asking):

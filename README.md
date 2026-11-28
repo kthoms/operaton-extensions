@@ -8,18 +8,18 @@ Operaton versions it supports, and ships documentation and a runnable example.
 
 ## Quick start
 
-Java extensions (plugins and connectors): coordinates follow one pattern, groupId
-`org.operaton.extensions`:
+Java extensions (plugins and connectors): the Maven coordinates follow one pattern, and all modules
+of an extension share its groupId:
 
-| Kind | artifactId | Spring Boot starter (optional) |
-|---|---|---|
-| Plugin | `operaton-plugin-<name>` | `operaton-plugin-<name>-spring-boot-starter` |
-| Connector | `operaton-connector-<name>` | `operaton-connector-<name>-spring-boot-starter` |
+| Kind | groupId | artifactId | Spring Boot starter (optional) |
+|---|---|---|---|
+| Plugin | `org.operaton.plugin.<name>` | `<name>-plugin` | `<name>-plugin-spring-boot-starter` |
+| Connector | `org.operaton.connector.<name>` | `<name>-connector` | `<name>-connector-spring-boot-starter` |
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-<name></artifactId>
+  <groupId>org.operaton.connector.<name></groupId>
+  <artifactId><name>-connector</artifactId>
   <version><!-- see the extension's README --></version>
 </dependency>
 ```

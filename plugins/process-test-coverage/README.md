@@ -17,8 +17,8 @@ The artifact is a test dependency; the engine and JUnit are provided by your pro
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-process-test-coverage</artifactId>
+  <groupId>org.operaton.plugin.process-test-coverage</groupId>
+  <artifactId>process-test-coverage-plugin</artifactId>
   <version>&lt;version&gt;</version>
   <scope>test</scope>
 </dependency>
@@ -127,7 +127,7 @@ dropping a test fails the build and the report shows the missing path. Run it wi
 
 ```bash
 ./mvnw -B -pl plugins/process-test-coverage -amd verify
-./mvnw -B -pl plugins/process-test-coverage/operaton-plugin-process-test-coverage -am verify -Doperaton.version=2.1.6
+./mvnw -B -pl plugins/process-test-coverage/process-test-coverage-plugin -am verify -Doperaton.version=2.1.6
 ```
 
 Design:

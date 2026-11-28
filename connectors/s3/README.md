@@ -16,8 +16,8 @@ The connectors are registered through the Operaton Connect SPI (`META-INF/servic
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-s3-spring-boot-starter</artifactId>
+  <groupId>org.operaton.connector.s3</groupId>
+  <artifactId>s3-connector-spring-boot-starter</artifactId>
   <version>VERSION</version>
 </dependency>
 <dependency>
@@ -32,8 +32,8 @@ Configure at least one store (see Configuration); the application refuses to sta
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-s3</artifactId>
+  <groupId>org.operaton.connector.s3</groupId>
+  <artifactId>s3-connector</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -49,7 +49,7 @@ configuration.getProcessEnginePlugins().add(s3);
 // after the engine is closed: s3.close();
 ```
 
-**Shared engine / distribution**: put `operaton-connector-s3-VERSION.jar` and the AWS SDK jars it depends on into the engine's `lib/` and add `org.operaton.extensions.connector.s3.S3ConnectorPlugin` with its `stores` to the process engine plugins in `bpm-platform.xml`.
+**Shared engine / distribution**: put `s3-connector-VERSION.jar` and the AWS SDK jars it depends on into the engine's `lib/` and add `org.operaton.extensions.connector.s3.S3ConnectorPlugin` with its `stores` to the process engine plugins in `bpm-platform.xml`.
 
 ## Usage
 
@@ -140,7 +140,7 @@ Verified in CI against these Operaton versions (from `extension.yml`):
 
 ```bash
 ./mvnw -B -pl connectors/s3 -amd verify                                  # whole extension incl. the example (Docker needed)
-./mvnw -B -pl connectors/s3/operaton-connector-s3 -am verify -Doperaton.version=2.1.6   # another Operaton version
+./mvnw -B -pl connectors/s3/s3-connector -am verify -Doperaton.version=2.1.6   # another Operaton version
 ```
 
 On Colima set `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`. Tests: unit tests, engine tests with `ProcessEngineExtension` (H2) and the store tests run against a real S3 implementation (LocalStack 3.8 via Testcontainers).

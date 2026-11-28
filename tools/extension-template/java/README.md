@@ -12,8 +12,8 @@ Maven (embedded engine or Spring Boot):
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-__KIND__-__NAME__</artifactId>
+  <groupId>org.operaton.__KIND__.__NAME__</groupId>
+  <artifactId>__NAME__-__KIND__</artifactId>
   <version>VERSION</version>
 </dependency>
 ```

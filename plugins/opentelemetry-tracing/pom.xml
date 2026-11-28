@@ -10,7 +10,8 @@
   </parent>
 
   <!-- Extension aggregator: holds the extension's version; never deployed. Metadata: extension.yml -->
-  <artifactId>operaton-plugin-opentelemetry-tracing-parent</artifactId>
+  <groupId>org.operaton.plugin.opentelemetry-tracing</groupId>
+  <artifactId>opentelemetry-tracing-plugin-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -18,8 +19,8 @@
   <description>Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance.</description>
 
   <modules>
-    <module>operaton-plugin-opentelemetry-tracing</module>
-    <module>operaton-plugin-opentelemetry-tracing-spring-boot-starter</module>
+    <module>opentelemetry-tracing-plugin</module>
+    <module>opentelemetry-tracing-plugin-spring-boot-starter</module>
     <module>example</module>
   </modules>
 

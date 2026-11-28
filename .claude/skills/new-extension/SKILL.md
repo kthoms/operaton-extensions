@@ -39,7 +39,7 @@ the rules.
 7. **Test.** Engine tests with `ProcessEngineExtension` (H2) for the engine-facing behaviour;
    Testcontainers for the external system (toolchains you do not have locally run from Docker images:
    `golang:1.x`, `rust:1`). Run against every declared minor (2.x only; 1.x is out of scope):
-   `./mvnw -B -pl <kinds>/<name>/operaton-<kind>-<name> -am verify -Doperaton.version=<pin>`
+   `./mvnw -B -pl <kinds>/<name>/<name>-<kind> -am verify -Doperaton.version=<pin>`
    with each pin from `compatibility/operaton-<minor>/pom.xml`. A minor that cannot be made to
    work is removed from `compatibility` (never claimed). Clients: unit tests plus integration
    tests against `operaton/operaton:<pin>`.

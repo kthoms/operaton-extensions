@@ -10,7 +10,8 @@
   </parent>
 
   <!-- Extension aggregator: holds the extension's version; never deployed. Metadata: extension.yml -->
-  <artifactId>operaton-connector-ai-llm-parent</artifactId>
+  <groupId>org.operaton.connector.ai-llm</groupId>
+  <artifactId>ai-llm-connector-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -18,8 +19,8 @@
   <description>Calls large language models from BPMN processes: prompts, schema-validated structured extraction and a bounded tool-calling agent, built on LangChain4j.</description>
 
   <modules>
-    <module>operaton-connector-ai-llm</module>
-    <module>operaton-connector-ai-llm-spring-boot-starter</module>
+    <module>ai-llm-connector</module>
+    <module>ai-llm-connector-spring-boot-starter</module>
     <module>example</module>
   </modules>
 

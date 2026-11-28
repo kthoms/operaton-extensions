@@ -15,8 +15,8 @@
 #   - example/README.md
 #   - NOTICE when a source file says "Ported from" or "Derived from"
 # Java extensions (plugins, connectors; build: maven):
-#   - pom.xml (artifactId operaton-<kind>-<name>-parent), example/pom.xml
-#   - operaton-<kind>-<name>/pom.xml with src/test/java and the package folder
+#   - pom.xml (groupId org.operaton.<kind>.<name>, artifactId <name>-<kind>-parent), example/pom.xml
+#   - <name>-<kind>/pom.xml with src/test/java and the package folder
 #     src/main/java/org/operaton/extensions/<kind>/<name-without-dashes>/
 # Clients (clients/<language>; build: npm | python | go | cargo):
 #   - the native project file (package.json | pyproject.toml | go.mod | Cargo.toml)
@@ -114,20 +114,29 @@ fi
 
 # ---------------------------------------------------------------- Java extension
 check_java() {
-  local artifact="operaton-$KIND-$NAME" pkg
+  local artifact="$NAME-$KIND" pkg
   if [ ! -f "$EXT/pom.xml" ]; then
     err "pom.xml (the extension aggregator) is missing"
   else
-    local aid
-    aid="$(python3 - "$EXT/pom.xml" <<'PY'
+    local aid gid
+    aid="$(python3 - "$EXT/pom.xml" artifactId <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 for c in root:
-    if c.tag.rsplit('}', 1)[-1] == 'artifactId':
+    if c.tag.rsplit('}', 1)[-1] == sys.argv[2]:
+        print((c.text or '').strip())
+PY
+)"
+    gid="$(python3 - "$EXT/pom.xml" groupId <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+for c in root:
+    if c.tag.rsplit('}', 1)[-1] == sys.argv[2]:
         print((c.text or '').strip())
 PY
 )"
     if [ "$aid" = "$artifact-parent" ]; then ok "pom.xml artifactId $aid"; else err "pom.xml: artifactId is '$aid', expected '$artifact-parent'"; fi
+    if [ "$gid" = "org.operaton.$KIND.$NAME" ]; then ok "pom.xml groupId $gid"; else err "pom.xml: groupId is '${gid:-(inherited)}', expected 'org.operaton.$KIND.$NAME'"; fi
   fi
   [ ! -d "$EXT/example" ] || [ -f "$EXT/example/pom.xml" ] || err "example/pom.xml is missing"
   if [ ! -f "$EXT/$artifact/pom.xml" ]; then

@@ -52,12 +52,12 @@ kind_of_path() { echo "${1%%/*}" | sed 's/s$//'; }
 json_array() { if [ $# -eq 0 ]; then echo '[]'; else jq -cn '$ARGS.positional' --args "$@"; fi; }
 
 # The Maven artifact modules of a Java extension, as a comma-separated -pl list:
-# sub-folders named operaton-<kind>-<name>* that contain a pom.xml (never example/).
+# sub-folders named <name>-<kind>* that contain a pom.xml (never example/).
 artifact_modules() {
   local ext="$1" kind name d out=""
   kind="$(kind_of_path "$ext")"
   name="${ext#*/}"
-  for d in "$ext"/operaton-"$kind"-"$name" "$ext"/operaton-"$kind"-"$name"-*; do
+  for d in "$ext"/"$name"-"$kind" "$ext"/"$name"-"$kind"-*; do
     [ -f "$d/pom.xml" ] || continue
     out="${out:+$out,}$d"
   done

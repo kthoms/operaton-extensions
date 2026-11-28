@@ -62,17 +62,17 @@ kebab-case (`kafka`, `history-cleanup-metrics`).
 ```
 <kinds>/<name>/
   extension.yml                            the manifest
-  pom.xml                                  extension aggregator (artifactId operaton-<kind>-<name>-parent): version
+  pom.xml                                  extension aggregator (groupId org.operaton.<kind>.<name>, artifactId <name>-<kind>-parent): version
   README.md                                user documentation (required sections: conventions/documentation.md)
   CHANGELOG.md                             generated at release time; do not edit by hand
   NOTICE                                   only when code was ported from another project (attribution)
   docs/                                    further user and developer documentation, as needed
-  operaton-<kind>-<name>/                  the released artifact (jar)
+  <name>-<kind>/                           the released artifact (jar)
     pom.xml
     src/main/java/org/operaton/extensions/<kind>/<name-without-dashes>/
     src/main/resources/
     src/test/java/...                      unit and engine tests (embedded engine, H2)
-  operaton-<kind>-<name>-spring-boot-starter/   optional: Spring Boot auto-configuration
+  <name>-<kind>-spring-boot-starter/       optional: Spring Boot auto-configuration
   example/                                 a runnable, near-real-world Spring Boot application (never released)
     pom.xml, compose.yaml, README.md, src/main/..., src/test/... (Testcontainers ITs)
 ```
@@ -119,7 +119,7 @@ The extension aggregator's `<name>` and `<description>` mirror the manifest.
   `org.operaton.bpm:operaton-bom:${operaton.version}`.
 - Build one extension: `./mvnw -B -pl <kinds>/<name> -amd verify` (the aggregator and its modules).
 - Build one extension against another Operaton version:
-  `./mvnw -B -pl <kinds>/<name>/operaton-<kind>-<name> -am verify -Doperaton.version=2.1.6`.
+  `./mvnw -B -pl <kinds>/<name>/<name>-<kind> -am verify -Doperaton.version=2.1.6`.
 - Formatting: Spotless (Palantir Java Format) checks on `verify`; `./mvnw spotless:apply` fixes.
 - `.github/scripts/check-structure.sh` refuses an extension whose manifest or layout deviates.
 

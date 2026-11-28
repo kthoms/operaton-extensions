@@ -26,8 +26,8 @@ Plain engine or any application that registers engine plugins:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-mail</artifactId>
+  <groupId>org.operaton.connector.mail</groupId>
+  <artifactId>mail-connector</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -48,13 +48,13 @@ Spring Boot (adds auto-configuration and the inbound poller):
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-mail-spring-boot-starter</artifactId>
+  <groupId>org.operaton.connector.mail</groupId>
+  <artifactId>mail-connector-spring-boot-starter</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
 
-Shared engine / distribution: put `operaton-connector-mail`, `jakarta.mail-api` and `angus-mail` into the engine's
+Shared engine / distribution: put `mail-connector`, `jakarta.mail-api` and `angus-mail` into the engine's
 `lib/` and register `org.operaton.extensions.connector.mail.MailConnectorPlugin` in `bpm-platform.xml`
 (plugin property `configLocation`).
 
@@ -258,7 +258,7 @@ Details: [example/README.md](example/README.md).
 
 ```bash
 ./mvnw -B -pl connectors/mail -amd verify                                              # whole extension incl. example (Docker)
-./mvnw -B -pl connectors/mail/operaton-connector-mail -am verify -Doperaton.version=2.1.6   # one Operaton version
+./mvnw -B -pl connectors/mail/mail-connector -am verify -Doperaton.version=2.1.6   # one Operaton version
 ```
 
 Tests: GreenMail (in-JVM SMTP/IMAP) for the connectors, the poller and the starter; `ProcessEngineExtension` with H2 and

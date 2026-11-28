@@ -17,7 +17,7 @@ Rules: `docs/conventions/compatibility.md`. A version that is not verified is ne
    tag in client examples.
 3. **Verify every extension** (parallel subagents, one per extension, each with the scoped
    command only):
-   `./mvnw -B -pl <ext>/operaton-<kind>-<name> -am verify -Doperaton.version=<pin>`; clients run
+   `./mvnw -B -pl <ext>/<name>-<kind> -am verify -Doperaton.version=<pin>`; clients run
    their integration tests with `OPERATON_VERSION=<pin>`.
 4. **Per extension:** passes → add the minor to `compatibility` in `extension.yml` and the README
    table. Fails → fix it when the fix is small and keeps older minors green; otherwise leave the

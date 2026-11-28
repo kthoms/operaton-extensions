@@ -10,7 +10,8 @@
   </parent>
 
   <!-- Extension aggregator: holds the extension's version; never deployed. Metadata: extension.yml -->
-  <artifactId>operaton-plugin-micrometer-metrics-parent</artifactId>
+  <groupId>org.operaton.plugin.micrometer-metrics</groupId>
+  <artifactId>micrometer-metrics-plugin-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -18,8 +19,8 @@
   <description>Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer.</description>
 
   <modules>
-    <module>operaton-plugin-micrometer-metrics</module>
-    <module>operaton-plugin-micrometer-metrics-spring-boot-starter</module>
+    <module>micrometer-metrics-plugin</module>
+    <module>micrometer-metrics-plugin-spring-boot-starter</module>
     <module>example</module>
   </modules>
 

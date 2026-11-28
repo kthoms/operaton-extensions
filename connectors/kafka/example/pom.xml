@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.operaton.extensions</groupId>
-    <artifactId>operaton-connector-kafka-parent</artifactId>
+    <groupId>org.operaton.connector.kafka</groupId>
+    <artifactId>kafka-connector-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
 
   <!-- Runnable example of the extension. Never released. See docs/conventions/examples.md -->
-  <artifactId>operaton-connector-kafka-example</artifactId>
+  <artifactId>kafka-connector-example</artifactId>
   <packaging>jar</packaging>
   <name>Operaton Kafka connector - Example</name>
 
@@ -34,8 +34,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.operaton.extensions</groupId>
-      <artifactId>operaton-connector-kafka-spring-boot-starter</artifactId>
+      <groupId>org.operaton.connector.kafka</groupId>
+      <artifactId>kafka-connector-spring-boot-starter</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

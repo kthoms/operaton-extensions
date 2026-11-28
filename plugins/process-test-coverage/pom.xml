@@ -10,7 +10,8 @@
   </parent>
 
   <!-- Extension aggregator: holds the extension's version; never deployed. Metadata: extension.yml -->
-  <artifactId>operaton-plugin-process-test-coverage-parent</artifactId>
+  <groupId>org.operaton.plugin.process-test-coverage</groupId>
+  <artifactId>process-test-coverage-plugin-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -18,7 +19,7 @@
   <description>Measures which BPMN flow nodes and sequence flows your process tests execute, asserts a minimum coverage and writes an HTML and JSON report.</description>
 
   <modules>
-    <module>operaton-plugin-process-test-coverage</module>
+    <module>process-test-coverage-plugin</module>
     <module>example</module>
   </modules>
 

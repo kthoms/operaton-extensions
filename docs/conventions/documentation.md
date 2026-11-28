@@ -47,8 +47,8 @@ Variants for Java extensions:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-kafka</artifactId>
+  <groupId>org.operaton.connector.kafka</groupId>
+  <artifactId>kafka-connector</artifactId>
   <version>1.0.0</version>
 </dependency>
 ```

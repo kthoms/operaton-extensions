@@ -17,8 +17,8 @@ Spring Boot:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-opentelemetry-tracing-spring-boot-starter</artifactId>
+  <groupId>org.operaton.plugin.opentelemetry-tracing</groupId>
+  <artifactId>opentelemetry-tracing-plugin-spring-boot-starter</artifactId>
   <version>VERSION</version>
 </dependency>
 <!-- your SDK and exporter, for example -->
@@ -35,8 +35,8 @@ Plain engine:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-opentelemetry-tracing</artifactId>
+  <groupId>org.operaton.plugin.opentelemetry-tracing</groupId>
+  <artifactId>opentelemetry-tracing-plugin</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -132,7 +132,7 @@ docker compose up -d --wait
 
 ```bash
 ./mvnw -B -pl plugins/opentelemetry-tracing -amd verify
-./mvnw -B -pl plugins/opentelemetry-tracing/operaton-plugin-opentelemetry-tracing -am verify -Doperaton.version=2.0.0
+./mvnw -B -pl plugins/opentelemetry-tracing/opentelemetry-tracing-plugin -am verify -Doperaton.version=2.0.0
 ```
 
 Tests use `opentelemetry-sdk-testing`'s `InMemorySpanExporter` with an embedded engine (H2); the example IT uses Testcontainers (PostgreSQL, Jaeger). On Colima set `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`.

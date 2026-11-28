@@ -8,7 +8,7 @@ https://github.com/cibseven/cibseven/tree/main/connect/ai-agent
 Apache License 2.0, Copyright CIB software GmbH and/or licensed to CIB software GmbH
 
 Ported files (original header kept, "Ported from" line added):
-- operaton-connector-ai-llm/src/main/java/org/operaton/extensions/connector/aillm/internal/AgentLoop.java
+- ai-llm-connector/src/main/java/org/operaton/extensions/connector/aillm/internal/AgentLoop.java
   (from AgentConnectorImpl: invented tool names, refused versus failing tools, message texts)
-- operaton-connector-ai-llm/src/main/java/org/operaton/extensions/connector/aillm/internal/LongText.java
+- ai-llm-connector/src/main/java/org/operaton/extensions/connector/aillm/internal/LongText.java
   (from AgentResponseImpl: answers over 4000 characters stored as JSON object values)

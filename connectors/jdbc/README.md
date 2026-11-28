@@ -28,8 +28,8 @@ Plain engine:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-jdbc</artifactId>
+  <groupId>org.operaton.connector.jdbc</groupId>
+  <artifactId>jdbc-connector</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -54,8 +54,8 @@ Spring Boot:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-jdbc-spring-boot-starter</artifactId>
+  <groupId>org.operaton.connector.jdbc</groupId>
+  <artifactId>jdbc-connector-spring-boot-starter</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -216,7 +216,7 @@ docker compose up -d --wait
 
 ```bash
 ./mvnw -B -pl connectors/jdbc -amd verify                                   # needs Docker for the PostgreSQL tests
-./mvnw -B -pl connectors/jdbc/operaton-connector-jdbc -am verify -Doperaton.version=2.1.6
+./mvnw -B -pl connectors/jdbc/jdbc-connector -am verify -Doperaton.version=2.1.6
 ```
 
 Tests: parser and binding tests, H2 tests (types, limits, injection attempts), engine tests with

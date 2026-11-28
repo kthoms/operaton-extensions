@@ -7,7 +7,7 @@
 # Prints the compatibility matrix as a JSON list for `strategy.matrix.include`: one entry per
 # (extension, Operaton minor in its extension.yml `compatibility`), e.g.
 #   [{"extension":"connectors/kafka","build":"maven","minor":"2.1","operaton_version":"2.1.6",
-#     "modules":"connectors/kafka/operaton-connector-kafka"}]
+#     "modules":"connectors/kafka/kafka-connector"}]
 # operaton_version is the patch pinned in compatibility/operaton-<minor>/pom.xml. `modules` is
 # the Maven -pl list of the artifact modules (empty for clients).
 #

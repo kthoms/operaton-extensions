@@ -30,7 +30,7 @@ project:
   vendor: Operaton Extensions
   languages:
     java:
-      groupId: org.operaton.extensions
+      groupId: __GROUP_ID__
       version: '17'
       multiProject: true
   tags:

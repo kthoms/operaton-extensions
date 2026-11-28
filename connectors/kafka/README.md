@@ -23,8 +23,8 @@ Plain engine or any JVM application:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-kafka</artifactId>
+  <groupId>org.operaton.connector.kafka</groupId>
+  <artifactId>kafka-connector</artifactId>
   <version>0.1.0</version>
 </dependency>
 ```
@@ -44,15 +44,15 @@ Spring Boot:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-kafka-spring-boot-starter</artifactId>
+  <groupId>org.operaton.connector.kafka</groupId>
+  <artifactId>kafka-connector-spring-boot-starter</artifactId>
   <version>0.1.0</version>
 </dependency>
 ```
 
 and set `operaton.extensions.connector.kafka.bootstrap-servers`. The starter brings `operaton-engine-plugin-connect`, which the Operaton starter registers, so `kafka-produce` works in BPMN without further setup.
 
-Shared engine: put `operaton-connector-kafka` and its dependencies (`kafka-clients`, `jackson-databind`) into the shared `lib/` and add `org.operaton.extensions.connector.kafka.KafkaConnectorPlugin` as a process engine plugin in `bpm-platform.xml` with the properties of the table below. The Operaton Connect SPI keeps connectors in a JVM-wide registry: the `kafka-produce` connector uses the producer of the last plugin started in the JVM.
+Shared engine: put `kafka-connector` and its dependencies (`kafka-clients`, `jackson-databind`) into the shared `lib/` and add `org.operaton.extensions.connector.kafka.KafkaConnectorPlugin` as a process engine plugin in `bpm-platform.xml` with the properties of the table below. The Operaton Connect SPI keeps connectors in a JVM-wide registry: the `kafka-produce` connector uses the producer of the last plugin started in the JVM.
 
 ## Usage
 
@@ -167,7 +167,7 @@ The starter is built against the Spring Boot version of the parent POM.
 
 ```bash
 ./mvnw -B -pl connectors/kafka -amd verify                                   # needs Docker
-./mvnw -B -pl connectors/kafka/operaton-connector-kafka -am verify -Doperaton.version=2.1.6
+./mvnw -B -pl connectors/kafka/kafka-connector -am verify -Doperaton.version=2.1.6
 ```
 
 On Colima set `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`. Tests use a real broker (`apache/kafka`) through Testcontainers and an embedded engine on H2.

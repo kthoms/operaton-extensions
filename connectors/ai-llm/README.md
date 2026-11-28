@@ -42,8 +42,8 @@ When not to use it:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-ai-llm-spring-boot-starter</artifactId>
+  <groupId>org.operaton.connector.ai-llm</groupId>
+  <artifactId>ai-llm-connector-spring-boot-starter</artifactId>
   <version><version></version>
 </dependency>
 <!-- Connect, which runs the llm-* connectors (not needed for the delegates) -->
@@ -69,12 +69,12 @@ application/json`, map results (the `result` of `llm-extract`) are stored as JSO
 
 ### Plain engine
 
-Add `operaton-connector-ai-llm` and `operaton-engine-plugin-connect`, and register both plugins:
+Add `ai-llm-connector` and `operaton-engine-plugin-connect`, and register both plugins:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-connector-ai-llm</artifactId>
+  <groupId>org.operaton.connector.ai-llm</groupId>
+  <artifactId>ai-llm-connector</artifactId>
   <version><version></version>
 </dependency>
 ```
@@ -108,7 +108,7 @@ In Java: `new AiLlmPlugin().addModel("default", config).addTool(BeanMethodTool.o
 
 ### Shared engine / distribution
 
-Put `operaton-connector-ai-llm` and its dependencies (LangChain4j core, OpenAI and Anthropic
+Put `ai-llm-connector` and its dependencies (LangChain4j core, OpenAI and Anthropic
 modules, Jackson 2, `json-schema-validator`; `mvn dependency:copy-dependencies` on the artifact
 lists them) into the server's `lib/` folder and add the plugin to `bpm-platform.xml`:
 
@@ -312,7 +312,7 @@ chat completions API. Details: [example/README.md](example/README.md).
 
 ```bash
 ./mvnw -B -pl connectors/ai-llm -amd verify                       # everything, incl. the example (Docker)
-./mvnw -B -pl connectors/ai-llm/operaton-connector-ai-llm -am verify -Doperaton.version=2.1.6
+./mvnw -B -pl connectors/ai-llm/ai-llm-connector -am verify -Doperaton.version=2.1.6
 ```
 
 Tests never call a real model: `LlmStubServer` (a JDK `HttpServer`) serves canned OpenAI chat

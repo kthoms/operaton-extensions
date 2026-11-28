@@ -31,13 +31,13 @@ is not included.
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-history-kafka-spring-boot-starter</artifactId>
+  <groupId>org.operaton.plugin.history-kafka</groupId>
+  <artifactId>history-kafka-plugin-spring-boot-starter</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
 
-**Plain engine**: add `operaton-plugin-history-kafka` (the starter is optional) and register the plugin:
+**Plain engine**: add `history-kafka-plugin` (the starter is optional) and register the plugin:
 
 ```java
 HistoryKafkaPlugin plugin = new HistoryKafkaPlugin();
@@ -133,7 +133,7 @@ and aggregated by a small consumer into an analytics view. Run it with `docker c
 
 ```bash
 ./mvnw -B -pl plugins/history-kafka -amd verify            # needs Docker (Colima: export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock)
-./mvnw -B -pl plugins/history-kafka/operaton-plugin-history-kafka -am verify -Doperaton.version=2.1.6
+./mvnw -B -pl plugins/history-kafka/history-kafka-plugin -am verify -Doperaton.version=2.1.6
 ```
 
 Design notes and best-guess decisions:

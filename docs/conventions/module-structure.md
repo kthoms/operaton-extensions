@@ -11,10 +11,11 @@ lower-case kebab-case, starting with a letter (`kafka`, `history-cleanup-metrics
 | Item | Pattern | Example (`connector`, `kafka`) |
 |---|---|---|
 | Folder | `<kinds>/<name>/` | `connectors/kafka/` |
-| groupId | `org.operaton.extensions` | |
-| Aggregator artifactId | `operaton-<kind>-<name>-parent` | `operaton-connector-kafka-parent` |
-| Artifact (released) | `operaton-<kind>-<name>` | `operaton-connector-kafka` |
-| Starter (optional, released) | `operaton-<kind>-<name>-spring-boot-starter` | `operaton-connector-kafka-spring-boot-starter` |
+| groupId (all modules of the extension) | `org.operaton.<kind>.<name>` | `org.operaton.connector.kafka` |
+| Aggregator artifactId | `<name>-<kind>-parent` | `kafka-connector-parent` |
+| Artifact (released) | `<name>-<kind>` | `kafka-connector` |
+| Starter (optional, released) | `<name>-<kind>-spring-boot-starter` | `kafka-connector-spring-boot-starter` |
+| Module folder | the artifactId | `connectors/kafka/kafka-connector/` |
 | Java package | `org.operaton.extensions.<kind>.<name without dashes>` | `org.operaton.extensions.connector.kafka` |
 | Package for `history-cleanup-metrics` | | `org.operaton.extensions.plugin.historycleanupmetrics` |
 | Tag | `<kinds>/<name>/v<version>` | `connectors/kafka/v1.3.0` |
@@ -43,8 +44,8 @@ apply as for Java extensions; the version lives in the language's project file (
 | Module | Released | Contains |
 |---|---|---|
 | `<kinds>/<name>/` (aggregator) | no | version, compatibility, metadata, module list |
-| `operaton-<kind>-<name>` | yes | the plugin or connector, usable with a plain engine |
-| `operaton-<kind>-<name>-spring-boot-starter` | yes, optional | auto-configuration and property binding only; no logic |
+| `<name>-<kind>` | yes | the plugin or connector, usable with a plain engine |
+| `<name>-<kind>-spring-boot-starter` | yes, optional | auto-configuration and property binding only; no logic |
 | `example/` | no | runnable Spring Boot application, see [examples.md](examples.md) |
 
 Add a starter only when auto-configuration adds value over registering the plugin by hand. The

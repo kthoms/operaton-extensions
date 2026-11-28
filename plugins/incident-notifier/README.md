@@ -25,8 +25,8 @@ Plain engine:
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-incident-notifier</artifactId>
+  <groupId>org.operaton.plugin.incident-notifier</groupId>
+  <artifactId>incident-notifier-plugin</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -51,8 +51,8 @@ Spring Boot (the Operaton starter picks up the plugin bean):
 
 ```xml
 <dependency>
-  <groupId>org.operaton.extensions</groupId>
-  <artifactId>operaton-plugin-incident-notifier-spring-boot-starter</artifactId>
+  <groupId>org.operaton.plugin.incident-notifier</groupId>
+  <artifactId>incident-notifier-plugin-spring-boot-starter</artifactId>
   <version>VERSION</version>
 </dependency>
 ```
@@ -151,7 +151,7 @@ Verified in CI against these Operaton versions (from `extension.yml`):
 
 ```bash
 ./mvnw -B -pl plugins/incident-notifier -amd verify
-./mvnw -B -pl plugins/incident-notifier/operaton-plugin-incident-notifier -am verify -Doperaton.version=2.1.6
+./mvnw -B -pl plugins/incident-notifier/incident-notifier-plugin -am verify -Doperaton.version=2.1.6
 ```
 
 Tests: unit tests (renderer, JSON, dispatcher, configuration validation), embedded-engine tests with `ProcessEngineExtension` and H2 (failed job and external task incidents, rollback, failing channel), GreenMail for SMTP, a JDK `HttpServer` for the webhooks; the example runs the full scenario with PostgreSQL and Mailpit via Testcontainers.

@@ -10,7 +10,8 @@
   </parent>
 
   <!-- Extension aggregator: holds the extension's version; never deployed. Metadata: extension.yml -->
-  <artifactId>operaton-__KIND__-__NAME__-parent</artifactId>
+  <groupId>org.operaton.__KIND__.__NAME__</groupId>
+  <artifactId>__NAME__-__KIND__-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -18,7 +19,7 @@
   <description>TODO same sentence as extension.yml</description>
 
   <modules>
-    <module>operaton-__KIND__-__NAME__</module>
+    <module>__NAME__-__KIND__</module>
     <module>example</module>
   </modules>
 

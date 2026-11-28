@@ -26,7 +26,7 @@ To reproduce a Java job locally (Testcontainers needs Docker; on Colima set
 `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`):
 
 ```bash
-./mvnw -B -pl <kinds>/<name>/operaton-<kind>-<name> -am verify -Doperaton.version=<x.y.z>
+./mvnw -B -pl <kinds>/<name>/<name>-<kind> -am verify -Doperaton.version=<x.y.z>
 ```
 
 Dependabot keeps each pinned POM on the newest patch of its minor.

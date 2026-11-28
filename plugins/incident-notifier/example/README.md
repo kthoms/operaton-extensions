@@ -4,7 +4,7 @@ A payment process charges an order; when the payment gateway declines a large am
 
 ## What it shows
 
-- The starter (`operaton-plugin-incident-notifier-spring-boot-starter`) configured only through `application.yaml`.
+- The starter (`incident-notifier-plugin-spring-boot-starter`) configured only through `application.yaml`.
 - A failed job incident turned into a mail (and, in the test, a webhook POST) after the transaction committed.
 
 ## Process model

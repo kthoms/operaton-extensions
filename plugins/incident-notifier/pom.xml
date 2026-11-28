@@ -10,7 +10,8 @@
   </parent>
 
   <!-- Extension aggregator: holds the extension's version; never deployed. Metadata: extension.yml -->
-  <artifactId>operaton-plugin-incident-notifier-parent</artifactId>
+  <groupId>org.operaton.plugin.incident-notifier</groupId>
+  <artifactId>incident-notifier-plugin-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -18,8 +19,8 @@
   <description>Notifies operators about Operaton incidents by mail, webhook, Slack and Microsoft Teams with throttling.</description>
 
   <modules>
-    <module>operaton-plugin-incident-notifier</module>
-    <module>operaton-plugin-incident-notifier-spring-boot-starter</module>
+    <module>incident-notifier-plugin</module>
+    <module>incident-notifier-plugin-spring-boot-starter</module>
     <module>example</module>
   </modules>
 
