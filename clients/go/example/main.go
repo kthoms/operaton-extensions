@@ -103,9 +103,9 @@ func runWorker() error {
 		LockDuration: time.Minute,
 		// Retried tasks are picked up by the next poll; keep the poll short so the demo is quick.
 		AsyncResponseTimeout: 10 * time.Second,
-		Retries:      3,
-		RetryTimeout: 2 * time.Second,
-		Logger:       slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo})),
+		Retries:              3,
+		RetryTimeout:         2 * time.Second,
+		Logger:               slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo})),
 	})
 	if err != nil {
 		return err
