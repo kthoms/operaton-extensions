@@ -80,6 +80,9 @@ jobs:
       contents: read
     strategy:
       fail-fast: false
+      # Building every extension at once (a change to parent/ or compatibility/) starts dozens of jobs
+      # that all download from Maven Central; it answers some with HTTP 429. A cap keeps that rare.
+      max-parallel: 10
       matrix:
         include: ${{ fromJSON(needs.changes.outputs.compat) }}
     env:
@@ -149,6 +152,9 @@ jobs:
       contents: read
     strategy:
       fail-fast: false
+      # Building every extension at once (a change to parent/ or compatibility/) starts dozens of jobs
+      # that all download from Maven Central; it answers some with HTTP 429. A cap keeps that rare.
+      max-parallel: 10
       matrix:
         include: ${{ fromJSON(needs.changes.outputs.full) }}
     env:

@@ -7,6 +7,7 @@ package org.operaton.extensions.connector.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.time.Duration;
 import java.util.Map;
@@ -87,14 +88,44 @@ class S3StoreConfigTest {
 
     @Test
     void aStoreWithoutAnyRegionFailsWhenFirstUsedNotWhenRegistered() {
-        S3StoreConfig config = new S3StoreConfig();
-        config.setAccessKey("a");
-        config.setSecretKey("b");
-        try (S3StoreRegistry registry = new S3StoreRegistry(Map.of("noregion", config), null)) {
-            assertThatThrownBy(() -> registry.store(null))
-                    .isInstanceOf(S3ConnectorException.class)
-                    .hasMessageContaining("S3 store 'noregion'")
-                    .hasMessageContaining("region");
+        // The SDK looks for a region in AWS_REGION, the AWS config file and the EC2 metadata service. Switch
+        // the sources we control off so the test does not depend on the machine it runs on.
+        assumeThat(System.getenv("AWS_REGION")).as("AWS_REGION is set").isNull();
+        assumeThat(System.getenv("AWS_DEFAULT_REGION"))
+                .as("AWS_DEFAULT_REGION is set")
+                .isNull();
+        Map<String, String> sdkSettings = Map.of(
+                "aws.region", "",
+                "aws.configFile", "/nonexistent/aws-config",
+                "aws.sharedCredentialsFile", "/nonexistent/aws-credentials",
+                "aws.disableEc2Metadata", "true");
+        Map<String, String> previous = new java.util.HashMap<>();
+        sdkSettings.forEach((key, value) -> {
+            previous.put(key, System.getProperty(key));
+            if (value.isEmpty()) {
+                System.clearProperty(key);
+            } else {
+                System.setProperty(key, value);
+            }
+        });
+        try {
+            S3StoreConfig config = new S3StoreConfig();
+            config.setAccessKey("a");
+            config.setSecretKey("b");
+            try (S3StoreRegistry registry = new S3StoreRegistry(Map.of("noregion", config), null)) {
+                assertThatThrownBy(() -> registry.store(null))
+                        .isInstanceOf(S3ConnectorException.class)
+                        .hasMessageContaining("S3 store 'noregion'")
+                        .hasMessageContaining("region");
+            }
+        } finally {
+            previous.forEach((key, value) -> {
+                if (value == null) {
+                    System.clearProperty(key);
+                } else {
+                    System.setProperty(key, value);
+                }
+            });
         }
     }
 
