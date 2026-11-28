@@ -1,0 +1,20 @@
+[package]
+name = "operaton-fraud-check-example"
+version = "0.1.0"
+edition = "2021"
+description = "Example worker for the Operaton Rust external task client: a fraud check."
+license = "Apache-2.0"
+publish = false
+
+[features]
+default = []
+# The end-to-end test against a real engine (OPERATON_URL).
+integration = []
+
+[dependencies]
+operaton-external-task-client = { path = ".." }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "multipart"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
