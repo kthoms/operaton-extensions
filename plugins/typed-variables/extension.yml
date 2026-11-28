@@ -1,0 +1,8 @@
+kind: plugin
+name: typed-variables
+title: Typed Variables
+description: Declares process variable names and types once and gives delegates, listeners, external task workers and tests type-safe access to them.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

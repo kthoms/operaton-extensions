@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    history-level: full
+example:
+  # orders above this total (in cents) wait for a manager's approval
+  approval-threshold-cents: 100000

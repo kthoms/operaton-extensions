@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_order_processing" targetNamespace="http://operaton.org/extensions/typed-variables/example">
+  <bpmn:process id="order-processing" name="Order processing" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="order-received" name="Order received">
+      <bpmn:extensionElements>
+        <operaton:executionListener event="end" class="org.operaton.extensions.plugin.typedvariables.example.OrderStatusListener">
+          <operaton:field name="status">
+            <operaton:string>RECEIVED</operaton:string>
+          </operaton:field>
+        </operaton:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="order-received" targetRef="validate-order"/>
+    <bpmn:serviceTask id="validate-order" name="Validate order" operaton:asyncBefore="true" operaton:delegateExpression="${validateOrderDelegate}">
+      <bpmn:extensionElements>
+        <operaton:failedJobRetryTimeCycle>R1/PT0S</operaton:failedJobRetryTimeCycle>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="validate-order" targetRef="order-valid"/>
+    <bpmn:exclusiveGateway id="order-valid" name="Order valid?">
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f-valid</bpmn:outgoing>
+      <bpmn:outgoing>f-invalid</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="f-valid" name="yes" sourceRef="order-valid" targetRef="price-order">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${valid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f-invalid" name="no" sourceRef="order-valid" targetRef="order-rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!valid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="price-order" name="Price order" operaton:delegateExpression="${priceOrderDelegate}">
+      <bpmn:incoming>f-valid</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f3" sourceRef="price-order" targetRef="needs-approval"/>
+    <bpmn:exclusiveGateway id="needs-approval" name="Large order?">
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f-large</bpmn:outgoing>
+      <bpmn:outgoing>f-small</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="f-large" name="yes" sourceRef="needs-approval" targetRef="approve-order">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${needsApproval}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f-small" name="no" sourceRef="needs-approval" targetRef="order-accepted">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!needsApproval}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="approve-order" name="Approve order" operaton:candidateGroups="managers">
+      <bpmn:incoming>f-large</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="f4" sourceRef="approve-order" targetRef="order-approved"/>
+    <bpmn:exclusiveGateway id="order-approved" name="Approved?">
+      <bpmn:incoming>f4</bpmn:incoming>
+      <bpmn:outgoing>f-approved</bpmn:outgoing>
+      <bpmn:outgoing>f-declined</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="f-approved" name="yes" sourceRef="order-approved" targetRef="order-accepted">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f-declined" name="no" sourceRef="order-approved" targetRef="order-rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!approved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="order-accepted" name="Order accepted">
+      <bpmn:extensionElements>
+        <operaton:executionListener event="start" class="org.operaton.extensions.plugin.typedvariables.example.OrderStatusListener">
+          <operaton:field name="status">
+            <operaton:string>ACCEPTED</operaton:string>
+          </operaton:field>
+        </operaton:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f-small</bpmn:incoming>
+      <bpmn:incoming>f-approved</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="order-rejected" name="Order rejected">
+      <bpmn:extensionElements>
+        <operaton:executionListener event="start" class="org.operaton.extensions.plugin.typedvariables.example.OrderStatusListener">
+          <operaton:field name="status">
+            <operaton:string>REJECTED</operaton:string>
+          </operaton:field>
+        </operaton:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>f-invalid</bpmn:incoming>
+      <bpmn:incoming>f-declined</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_1">
+    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="order-processing">
+      <bpmndi:BPMNShape id="order-received_di" bpmnElement="order-received">
+        <dc:Bounds x="152" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="133" y="145" width="74" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="validate-order_di" bpmnElement="validate-order">
+        <dc:Bounds x="240" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="order-valid_di" bpmnElement="order-valid" isMarkerVisible="true">
+        <dc:Bounds x="395" y="95" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="388" y="65" width="64" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="price-order_di" bpmnElement="price-order">
+        <dc:Bounds x="500" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="needs-approval_di" bpmnElement="needs-approval" isMarkerVisible="true">
+        <dc:Bounds x="655" y="95" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="649" y="150" width="62" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="approve-order_di" bpmnElement="approve-order">
+        <dc:Bounds x="760" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="order-approved_di" bpmnElement="order-approved" isMarkerVisible="true">
+        <dc:Bounds x="915" y="95" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="913" y="65" width="54" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="order-accepted_di" bpmnElement="order-accepted">
+        <dc:Bounds x="1022" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1003" y="145" width="74" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="order-rejected_di" bpmnElement="order-rejected">
+        <dc:Bounds x="1022" y="262" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1004" y="305" width="72" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1">
+        <di:waypoint x="188" y="120"/><di:waypoint x="240" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2">
+        <di:waypoint x="340" y="120"/><di:waypoint x="395" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f-valid_di" bpmnElement="f-valid">
+        <di:waypoint x="445" y="120"/><di:waypoint x="500" y="120"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="463" y="102" width="18" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f-invalid_di" bpmnElement="f-invalid">
+        <di:waypoint x="420" y="145"/><di:waypoint x="420" y="280"/><di:waypoint x="1022" y="280"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="428" y="200" width="15" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3">
+        <di:waypoint x="600" y="120"/><di:waypoint x="655" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f-large_di" bpmnElement="f-large">
+        <di:waypoint x="705" y="120"/><di:waypoint x="760" y="120"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="723" y="102" width="18" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f-small_di" bpmnElement="f-small">
+        <di:waypoint x="680" y="95"/><di:waypoint x="680" y="30"/><di:waypoint x="1040" y="30"/><di:waypoint x="1040" y="102"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="688" y="48" width="15" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4">
+        <di:waypoint x="860" y="120"/><di:waypoint x="915" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f-approved_di" bpmnElement="f-approved">
+        <di:waypoint x="965" y="120"/><di:waypoint x="1022" y="120"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="980" y="102" width="18" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f-declined_di" bpmnElement="f-declined">
+        <di:waypoint x="940" y="145"/><di:waypoint x="940" y="280"/><di:waypoint x="1022" y="280"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="948" y="200" width="15" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

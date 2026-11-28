@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.operaton.extensions</groupId>
+    <artifactId>operaton-plugin-typed-variables-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>operaton-plugin-typed-variables</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Operaton Typed Variables</name>
+  <description>Declares process variable names and types once and gives delegates, listeners, external task workers and tests type-safe access to them.</description>
+  <url>https://github.com/kthoms/operaton-extensions/tree/develop/plugins/typed-variables</url>
+
+  <dependencies>
+    <!-- The host application provides the engine: Operaton is always 'provided' -->
+    <dependency>
+      <groupId>org.operaton.bpm</groupId>
+      <artifactId>operaton-engine</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Only needed for the ExternalTask overloads, i.e. in worker applications -->
+    <dependency>
+      <groupId>org.operaton.bpm</groupId>
+      <artifactId>operaton-external-task-client</artifactId>
+      <version>${operaton.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- JSON objects are stored through Spin when it is present; the tests cover both formats -->
+    <dependency>
+      <groupId>org.operaton.bpm</groupId>
+      <artifactId>operaton-engine-plugin-spin</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.operaton.spin</groupId>
+      <artifactId>operaton-spin-dataformat-json-jackson</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.operaton.bpm</groupId>
+      <artifactId>operaton-bpm-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <!-- Two runs: the regular tests with Spin on the classpath, and NoSpin*Test without it (Java serialization fallback) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <configuration>
+              <excludes>
+                <exclude>**/NoSpin*Test.java</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>no-spin</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/NoSpin*Test.java</include>
+              </includes>
+              <classpathDependencyExcludes>
+                <classpathDependencyExclude>org.operaton.bpm:operaton-engine-plugin-spin</classpathDependencyExclude>
+                <classpathDependencyExclude>org.operaton.spin:operaton-spin-dataformat-json-jackson</classpathDependencyExclude>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

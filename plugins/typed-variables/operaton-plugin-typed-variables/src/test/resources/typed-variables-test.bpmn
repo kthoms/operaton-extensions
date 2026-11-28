@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  targetNamespace="http://operaton.org/extensions/typed-variables-test">
+  <bpmn:process id="typed-variables-test" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:serviceTask id="price" name="Price order" operaton:class="org.operaton.extensions.plugin.typedvariables.TestDelegates$PriceDelegate"/>
+    <bpmn:subProcess id="packing" name="Pack order">
+      <bpmn:extensionElements>
+        <operaton:executionListener event="start" class="org.operaton.extensions.plugin.typedvariables.TestDelegates$StepListener"/>
+      </bpmn:extensionElements>
+      <bpmn:startEvent id="packingStart"/>
+      <bpmn:serviceTask id="pack" name="Pick items" operaton:class="org.operaton.extensions.plugin.typedvariables.TestDelegates$PackDelegate"/>
+      <bpmn:userTask id="wait" name="Wait for pickup"/>
+      <bpmn:endEvent id="packingEnd"/>
+      <bpmn:sequenceFlow id="p1" sourceRef="packingStart" targetRef="pack"/>
+      <bpmn:sequenceFlow id="p2" sourceRef="pack" targetRef="wait"/>
+      <bpmn:sequenceFlow id="p3" sourceRef="wait" targetRef="packingEnd"/>
+    </bpmn:subProcess>
+    <bpmn:endEvent id="end"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="price"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="price" targetRef="packing"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="packing" targetRef="end"/>
+  </bpmn:process>
+</bpmn:definitions>
