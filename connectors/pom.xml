@@ -17,6 +17,7 @@
   <modules>
     <!-- extensions:begin -->
     <module>mail</module>
+    <module>s3</module>
     <!-- extensions:end -->
   </modules>
 </project>

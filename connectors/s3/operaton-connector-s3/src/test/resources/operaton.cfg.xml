@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- The S3 endpoint, credentials and buckets are built by TestStores from the system properties set in AbstractS3EngineTest -->
+  <bean id="processEngineConfiguration" class="org.operaton.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+    <property name="jdbcUrl" value="jdbc:h2:mem:operaton;DB_CLOSE_DELAY=1000" />
+    <property name="databaseSchemaUpdate" value="true" />
+    <property name="jobExecutorActivate" value="false" />
+    <property name="history" value="full" />
+    <property name="processEnginePlugins">
+      <list>
+        <bean class="org.operaton.connect.plugin.impl.ConnectProcessEnginePlugin"/>
+        <bean class="org.operaton.extensions.connector.s3.S3ConnectorPlugin">
+          <property name="defaultStore" value="docs"/>
+          <property name="stores">
+            <map>
+              <entry key="docs">
+                <bean class="org.operaton.extensions.connector.s3.TestStores" factory-method="docs"/>
+              </entry>
+              <entry key="other">
+                <bean class="org.operaton.extensions.connector.s3.TestStores" factory-method="other"/>
+              </entry>
+            </map>
+          </property>
+        </bean>
+      </list>
+    </property>
+  </bean>
+</beans>
