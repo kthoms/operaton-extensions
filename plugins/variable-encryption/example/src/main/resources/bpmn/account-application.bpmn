@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_account" targetNamespace="http://operaton.org/examples/variable-encryption">
+  <bpmn:process id="account-application" name="Account application" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="application-received" name="Application received">
+      <bpmn:outgoing>flow-to-validate</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="validate-iban" name="Validate IBAN" operaton:delegateExpression="${ibanValidator}">
+      <bpmn:incoming>flow-to-validate</bpmn:incoming>
+      <bpmn:outgoing>flow-to-check</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="iban-valid" name="IBAN valid?" default="flow-iban-invalid">
+      <bpmn:incoming>flow-to-check</bpmn:incoming>
+      <bpmn:outgoing>flow-iban-valid</bpmn:outgoing>
+      <bpmn:outgoing>flow-iban-invalid</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="review-application" name="Review application" operaton:candidateGroups="clerks">
+      <bpmn:incoming>flow-iban-valid</bpmn:incoming>
+      <bpmn:outgoing>flow-reviewed</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="review-decision" name="Approved?" default="flow-review-rejected">
+      <bpmn:incoming>flow-reviewed</bpmn:incoming>
+      <bpmn:outgoing>flow-review-approved</bpmn:outgoing>
+      <bpmn:outgoing>flow-review-rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="account-opened" name="Account opened">
+      <bpmn:incoming>flow-review-approved</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="application-rejected" name="Application rejected">
+      <bpmn:incoming>flow-iban-invalid</bpmn:incoming>
+      <bpmn:incoming>flow-review-rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow-to-validate" sourceRef="application-received" targetRef="validate-iban" />
+    <bpmn:sequenceFlow id="flow-to-check" sourceRef="validate-iban" targetRef="iban-valid" />
+    <bpmn:sequenceFlow id="flow-iban-valid" name="Valid" sourceRef="iban-valid" targetRef="review-application">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ibanValid == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow-iban-invalid" name="Invalid" sourceRef="iban-valid" targetRef="application-rejected" />
+    <bpmn:sequenceFlow id="flow-reviewed" sourceRef="review-application" targetRef="review-decision" />
+    <bpmn:sequenceFlow id="flow-review-approved" name="Approved" sourceRef="review-decision" targetRef="account-opened">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow-review-rejected" name="Rejected" sourceRef="review-decision" targetRef="application-rejected" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="account-application">
+      <bpmndi:BPMNShape id="application-received_di" bpmnElement="application-received">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="133" y="145" width="75" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="validate-iban_di" bpmnElement="validate-iban">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="iban-valid_di" bpmnElement="iban-valid" isMarkerVisible="true">
+        <dc:Bounds x="395" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="391" y="65" width="58" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="review-application_di" bpmnElement="review-application">
+        <dc:Bounds x="500" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="review-decision_di" bpmnElement="review-decision" isMarkerVisible="true">
+        <dc:Bounds x="655" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="656" y="65" width="48" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="account-opened_di" bpmnElement="account-opened">
+        <dc:Bounds x="772" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="751" y="145" width="79" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="application-rejected_di" bpmnElement="application-rejected">
+        <dc:Bounds x="772" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="750" y="305" width="80" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-to-validate_di" bpmnElement="flow-to-validate">
+        <di:waypoint x="188" y="120" /><di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-to-check_di" bpmnElement="flow-to-check">
+        <di:waypoint x="340" y="120" /><di:waypoint x="395" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-iban-valid_di" bpmnElement="flow-iban-valid">
+        <di:waypoint x="445" y="120" /><di:waypoint x="500" y="120" />
+        <bpmndi:BPMNLabel><dc:Bounds x="458" y="102" width="30" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-iban-invalid_di" bpmnElement="flow-iban-invalid">
+        <di:waypoint x="420" y="145" /><di:waypoint x="420" y="280" /><di:waypoint x="772" y="280" />
+        <bpmndi:BPMNLabel><dc:Bounds x="428" y="190" width="38" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-reviewed_di" bpmnElement="flow-reviewed">
+        <di:waypoint x="600" y="120" /><di:waypoint x="655" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-review-approved_di" bpmnElement="flow-review-approved">
+        <di:waypoint x="705" y="120" /><di:waypoint x="772" y="120" />
+        <bpmndi:BPMNLabel><dc:Bounds x="716" y="102" width="47" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-review-rejected_di" bpmnElement="flow-review-rejected">
+        <di:waypoint x="680" y="145" /><di:waypoint x="680" y="250" /><di:waypoint x="790" y="250" /><di:waypoint x="790" y="262" />
+        <bpmndi:BPMNLabel><dc:Bounds x="688" y="180" width="43" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

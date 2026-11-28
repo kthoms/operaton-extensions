@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+             targetNamespace="http://operaton.org/extensions/variable-encryption/test">
+  <process id="mutating-process" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <startEvent id="start"/>
+    <sequenceFlow id="f1" sourceRef="start" targetRef="read"/>
+    <serviceTask id="read" name="Read only" operaton:class="org.operaton.extensions.plugin.variableencryption.ReadOnlyDelegate"/>
+    <sequenceFlow id="f2" sourceRef="read" targetRef="mutate"/>
+    <serviceTask id="mutate" name="Mutate in place" operaton:class="org.operaton.extensions.plugin.variableencryption.MutatingDelegate"/>
+    <sequenceFlow id="f3" sourceRef="mutate" targetRef="wait"/>
+    <userTask id="wait" name="Wait"/>
+    <sequenceFlow id="f4" sourceRef="wait" targetRef="end"/>
+    <endEvent id="end"/>
+  </process>
+</definitions>

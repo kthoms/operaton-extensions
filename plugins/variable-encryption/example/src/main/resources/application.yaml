@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+  extensions:
+    plugin:
+      variable-encryption:
+        # Demo key, committed for the example only. In a real system the key comes from the
+        # environment (APP_ENCRYPTION_KEY), a key store or a KMS, never from the repository.
+        keys:
+          demo-2026-01: ${APP_ENCRYPTION_KEY:JMbnXsjmxDfyMKnKELlwfSnMWsAcKBr2gdUFhJW9q40=}
+        active-key-id: demo-2026-01
+        # encrypted by name; passportNumber is encrypted because the code tags it
+        variable-names: [iban, birthDate, applicantProfile]

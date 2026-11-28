@@ -1,0 +1,8 @@
+kind: plugin
+name: variable-encryption
+title: Variable Encryption Plugin
+description: Encrypts selected process variables at rest with AES-256-GCM, transparently to the engine API, including their history.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating
