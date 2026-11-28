@@ -104,7 +104,14 @@ jobs:
           cache: maven # zizmor: ignore[cache-poisoning] build.yml never publishes; releases build in release-extension.yml without caches
       - name: Download Maven (retried; the distribution download is occasionally flaky)
         if: matrix.build == 'maven'
-        run: for attempt in 1 2 3 4 5; do ./mvnw -B -q -v && exit 0; echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10)); done; exit 1
+        run: |
+          # Maven Central rate-limits the runners (HTTP 429): the later attempts use Google's mirror of it
+          for attempt in 1 2 3 4 5; do
+            if [ "$attempt" -ge 3 ]; then export MVNW_REPOURL=https://maven-central.storage-download.googleapis.com/maven2; fi
+            ./mvnw -B -q -v && exit 0
+            echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10))
+          done
+          exit 1
       - name: Set up Node.js 22
         if: matrix.build == 'npm'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -131,7 +138,7 @@ jobs:
       # Java: unit and engine tests of the artifact modules against the pinned Operaton version
       - name: Test artifact modules
         if: matrix.build == 'maven'
-        run: ./mvnw -B -ntp -pl "$MODULES" -am verify -Doperaton.version="$OPERATON_VERSION"
+        run: .github/scripts/mvn-retry.sh -B -ntp -pl "$MODULES" -am verify -Doperaton.version="$OPERATON_VERSION"
 
       # Clients: integration tests against the operaton/operaton:<version> Docker image
       - name: Start Operaton ${{ matrix.operaton_version }}
@@ -178,7 +185,14 @@ jobs:
           cache: maven # zizmor: ignore[cache-poisoning] build.yml never publishes; releases build in release-extension.yml without caches
       - name: Download Maven (retried; the distribution download is occasionally flaky)
         if: matrix.build == 'maven'
-        run: for attempt in 1 2 3 4 5; do ./mvnw -B -q -v && exit 0; echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10)); done; exit 1
+        run: |
+          # Maven Central rate-limits the runners (HTTP 429): the later attempts use Google's mirror of it
+          for attempt in 1 2 3 4 5; do
+            if [ "$attempt" -ge 3 ]; then export MVNW_REPOURL=https://maven-central.storage-download.googleapis.com/maven2; fi
+            ./mvnw -B -q -v && exit 0
+            echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10))
+          done
+          exit 1
       - name: Set up Node.js 22
         if: matrix.build == 'npm'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -206,7 +220,7 @@ jobs:
       # ITs; Docker is available on the runner) at the default Operaton version of the parent POM
       - name: Build the extension
         if: matrix.build == 'maven'
-        run: ./mvnw -B -ntp -pl "$EXT" -am -amd verify
+        run: .github/scripts/mvn-retry.sh -B -ntp -pl "$EXT" -am -amd verify
 
       # Clients: lint, unit tests and integration tests at the newest declared Operaton version
       - name: Install dependencies
