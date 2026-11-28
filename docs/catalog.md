@@ -17,6 +17,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
 | [History Kafka Plugin](../plugins/history-kafka/README.md) | Publishes Operaton history events to Apache Kafka after the engine transaction commits. | 2.0, 2.1, 2.2 | incubating |
+| [Identity SCIM Plugin](../plugins/identity-scim/README.md) | Resolves Operaton users, groups and group membership from a SCIM 2.0 server (Microsoft Entra ID, Okta, Keycloak and others) as a read-only identity provider. | 2.0, 2.1, 2.2 | incubating |
 | [Incident Notifier Plugin](../plugins/incident-notifier/README.md) | Notifies operators about Operaton incidents by mail, webhook, Slack and Microsoft Teams with throttling. | 2.0, 2.1, 2.2 | incubating |
 | [Micrometer Metrics Plugin](../plugins/micrometer-metrics/README.md) | Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer. | 2.0, 2.1, 2.2 | incubating |
 | [OpenTelemetry Tracing](../plugins/opentelemetry-tracing/README.md) | Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance. | 2.0, 2.1, 2.2 | incubating |
@@ -61,7 +62,6 @@ contributor picks one, opens an issue, and moves it to the tables above with the
 |---|---|---|
 | connector | `amqp` (RabbitMQ) | fresh |
 | connector | `chat` (Slack, Teams, Mattermost) | fresh |
-| plugin | `identity-scim` (SCIM 2.0 for Entra ID, Okta) | cibseven `engine-plugins/identity-scim` (Apache-2.0): port |
 | plugin | `custom-batch` | camunda-community-hub/camunda-platform-7-custom-batch (Apache-2.0, archived): port |
 | connector | `a2a` (Agent2Agent protocol) | idea from operaton/operaton#3480: fresh |
 | connector | `camel` | camunda-platform-7-camel (Apache-2.0): port |
