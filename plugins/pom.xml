@@ -18,6 +18,7 @@
     <!-- extensions:begin -->
     <module>incident-notifier</module>
     <module>process-test-coverage</module>
+    <module>opentelemetry-tracing</module>
     <!-- extensions:end -->
   </modules>
 </project>
