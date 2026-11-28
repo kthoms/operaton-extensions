@@ -143,42 +143,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          PREPARED=""
-          for row in $(echo "$PLANS" | jq -r '.[] | [.extension, .tag, .version, .release_branch, .next_develop_version] | join("|")'); do
-            IFS='|' read -r EXT TAG VERSION RELEASE_BRANCH NEXT <<< "$row"
-            if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-              echo "::warning::$TAG does not exist: $EXT was not released, develop is left unchanged for it"
-              continue
-            fi
-            if [ ! -f "$EXT/extension.yml" ]; then
-              echo "::warning::$EXT no longer exists on develop"
-              continue
-            fi
-            if [ -n "$NEXT" ]; then
-              CURRENT="$(.github/scripts/release-info.sh version "$EXT")"
-              CURRENT_RELEASE="$(.github/scripts/release-info.sh release-version "$CURRENT")"
-              # only move forward: develop may already hold a higher (e.g. major) version
-              if [ "$(printf '%s\n%s\n' "$CURRENT_RELEASE" "$VERSION" | sort -V | tail -1)" = "$VERSION" ]; then
-                .github/scripts/set-version.sh "$EXT" "$NEXT" >/dev/null
-              else
-                echo "$EXT: develop holds $CURRENT, newer than $VERSION; version left as is"
-              fi
-            fi
-            if git cat-file -e "$TAG:$EXT/CHANGELOG.md" 2>/dev/null; then
-              git checkout -q "$TAG" -- "$EXT/CHANGELOG.md"
-            fi
-            .github/scripts/dependabot-release-entry.sh "$EXT" "$RELEASE_BRANCH"
-            git add -u -- "$EXT" .github/dependabot.yml
-            [ ! -f "$EXT/CHANGELOG.md" ] || git add -- "$EXT/CHANGELOG.md"
-            PREPARED="$PREPARED $EXT@$VERSION"
-          done
-          if git diff --cached --quiet; then
-            echo "Nothing to commit on develop"
-            exit 0
-          fi
-          git commit -q -m "chore(release): prepare next development versions" -m "Released:$PREPARED"
-          echo "commit=true" >> "$GITHUB_OUTPUT"
-          git show --stat HEAD
+          .github/scripts/prepare-develop.sh "$PLANS"
 
       - name: Push to develop
         if: steps.prepare.outputs.commit == 'true'

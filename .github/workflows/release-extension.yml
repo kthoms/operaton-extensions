@@ -29,6 +29,16 @@ on:
         type: boolean
         required: false
         default: false
+      source_ref:
+        description: 'Check out this ref instead of `ref` (release check on a pull request: the merge result); `ref` stays the branch the release is planned for'
+        type: string
+        required: false
+        default: ''
+      check:
+        description: 'Release check: signs with a throwaway key and uses placeholder Maven Central credentials, so JReleaser validates the whole release without any secret (implies a dry run)'
+        type: boolean
+        required: false
+        default: false
     secrets:
       GPG_PUBLIC_KEY:
         required: false
@@ -70,7 +80,7 @@ jobs:
     permissions:
       contents: write # push the tag; JReleaser creates the GitHub release
     concurrency:
-      group: "release-${{ inputs.extension }}"
+      group: "release-${{ inputs.extension }}${{ inputs.check && '-check' || '' }}"
       cancel-in-progress: false
     outputs:
       dry_run: ${{ steps.mode.outputs.dry_run }}
@@ -96,10 +106,10 @@ jobs:
             *) echo "::error::'$REF_NAME' is neither main nor a release branch of $EXT"; exit 1 ;;
           esac
 
-      - name: Checkout ${{ inputs.ref }}
+      - name: Checkout ${{ inputs.source_ref || inputs.ref }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.source_ref || inputs.ref }}
           fetch-depth: 0
           fetch-tags: true
           persist-credentials: false # pushes go through .github/scripts/git-remote.sh
@@ -113,7 +123,7 @@ jobs:
       - name: Dry run?
         id: mode
         env:
-          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run || inputs.check }}
           BUILD: ${{ steps.plan.outputs.build }}
           HAS_GPG: ${{ secrets.GPG_PUBLIC_KEY != '' && secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
           HAS_MAVENCENTRAL: ${{ secrets.MAVENCENTRAL_USERNAME != '' && secrets.MAVENCENTRAL_PASSWORD != '' }}
@@ -250,19 +260,41 @@ jobs:
           if [ "$BUILD" = maven ]; then TEMPLATE=.github/jreleaser/jreleaser.yml; else TEMPLATE=.github/jreleaser/jreleaser-client.yml; fi
           .github/scripts/jreleaser-config.sh "$TEMPLATE" "$EXT" target/jreleaser/jreleaser.yml
 
+      # Release check: a throwaway key signs the artifacts, so the signing and the Maven Central
+      # rules (which require signatures) are exercised without any real secret.
+      - name: Create a throwaway signing key (release check)
+        if: inputs.check && steps.plan.outputs.build == 'maven'
+        run: |
+          PASSPHRASE="$(openssl rand -hex 16)"
+          GNUPGHOME="$(mktemp -d)"
+          export GNUPGHOME
+          gpg --batch --pinentry-mode loopback --passphrase "$PASSPHRASE" \
+            --quick-generate-key "Release check <release-check@example.invalid>" rsa3072 sign never
+          DELIMITER="KEY_$(openssl rand -hex 8)"
+          {
+            echo "CHECK_GPG_PASSPHRASE=$PASSPHRASE"
+            echo "CHECK_GPG_PUBLIC_KEY<<$DELIMITER"
+            gpg --armor --export
+            echo "$DELIMITER"
+            echo "CHECK_GPG_SECRET_KEY<<$DELIMITER"
+            gpg --batch --pinentry-mode loopback --passphrase "$PASSPHRASE" --armor --export-secret-keys
+            echo "$DELIMITER"
+          } >> "$GITHUB_ENV"
+
       # Java extensions: GitHub release + Maven Central deploy, signed. Skipped when the signing or
-      # Maven Central secrets are missing (JReleaser cannot even dry-run the signing without them).
+      # Maven Central secrets are missing (JReleaser cannot even dry-run the signing without them),
+      # except in the release check, which brings its own key and placeholder credentials.
       - name: Release with JReleaser (GitHub + Maven Central)
-        if: steps.plan.outputs.build == 'maven' && steps.mode.outputs.secrets_ok == 'true'
+        if: steps.plan.outputs.build == 'maven' && (steps.mode.outputs.secrets_ok == 'true' || inputs.check)
         uses: jreleaser/release-action@90ac653bb9c79d11179e65d81499f3f34527dcd5 # 2.5.0
         env:
           JRELEASER_PROJECT_VERSION: ${{ steps.plan.outputs.version }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
-          JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME }}
-          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.MAVENCENTRAL_PASSWORD }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY || env.CHECK_GPG_PUBLIC_KEY }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_PRIVATE_KEY || env.CHECK_GPG_SECRET_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE || env.CHECK_GPG_PASSPHRASE }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME || (inputs.check && 'release-check' || '') }}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.MAVENCENTRAL_PASSWORD || (inputs.check && 'release-check' || '') }}
           JRELEASER_DRY_RUN: ${{ steps.mode.outputs.dry_run }}
         with:
           arguments: full-release --config-file target/jreleaser/jreleaser.yml --basedir . -PextensionPath=${{ inputs.extension }}
@@ -372,8 +404,8 @@ jobs:
       - name: Checkout the release tag
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # in a dry run the tag was not pushed: use the branch instead
-          ref: ${{ needs.release.outputs.dry_run == 'true' && inputs.ref || needs.release.outputs.tag }}
+          # in a dry run the tag was not pushed: use the branch (or the release check's merge result) instead
+          ref: ${{ needs.release.outputs.dry_run == 'true' && (inputs.source_ref || inputs.ref) || needs.release.outputs.tag }}
           fetch-depth: 0
           persist-credentials: false
       - name: Download the release files
