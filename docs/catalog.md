@@ -29,6 +29,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 | [`mail`](../connectors/mail/) | Sends, polls and deletes mail over SMTP/IMAP from BPMN, and starts or correlates processes from incoming mail | 2.0, 2.1, 2.2 | incubating |
 | [s3](../connectors/s3/README.md) | Store, fetch, list, copy, delete and presign objects on S3-compatible storage from BPMN processes. | 2.0, 2.1, 2.2 | incubating |
 | [kafka](../connectors/kafka/README.md) | Produce to and consume from Apache Kafka in Operaton processes: send records after the engine transaction commits, start processes and correlate messages from records. | 2.0, 2.1, 2.2 | incubating |
+| [JDBC connector](../connectors/jdbc/README.md) | Run parameterised SQL queries and updates against relational databases from BPMN processes. | 2.0 - 2.2 | incubating |
 
 ## Clients
 

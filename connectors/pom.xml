@@ -19,6 +19,7 @@
     <module>mail</module>
     <module>s3</module>
     <module>kafka</module>
+    <module>jdbc</module>
     <!-- extensions:end -->
   </modules>
 </project>

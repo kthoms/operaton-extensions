@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+  extensions:
+    connector:
+      jdbc:
+        datasources:
+          # the business database; the engine's own database is configured above
+          default:
+            url: jdbc:postgresql://localhost:5432/business
+            username: operaton
+            password: operaton
+            maximum-pool-size: 5
+            default-query-timeout: 10s

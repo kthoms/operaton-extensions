@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_jdbc" targetNamespace="http://operaton.org/extensions/jdbc-test">
+  <bpmn:error id="Error_notFound" name="Customer not found" errorCode="CUSTOMER_NOT_FOUND"/>
+
+  <bpmn:process id="query-list" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-list-start"/>
+    <bpmn:sequenceFlow id="query-list-f1" sourceRef="query-list-start" targetRef="query-list-step"/>
+    <bpmn:serviceTask id="query-list-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT id, name, credit_limit FROM customer WHERE active = :active ORDER BY id</operaton:inputParameter>
+          <operaton:inputParameter name="active">${active}</operaton:inputParameter>
+          <operaton:outputParameter name="customers">${result}</operaton:outputParameter>
+          <operaton:outputParameter name="count">${rowCount}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-list-f2" sourceRef="query-list-step" targetRef="query-list-wait"/>
+    <bpmn:userTask id="query-list-wait"/>
+    <bpmn:sequenceFlow id="query-list-f3" sourceRef="query-list-wait" targetRef="query-list-end"/>
+    <bpmn:endEvent id="query-list-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="query-single" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-single-start"/>
+    <bpmn:sequenceFlow id="query-single-f1" sourceRef="query-single-start" targetRef="query-single-step"/>
+    <bpmn:serviceTask id="query-single-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT id, name, credit_limit FROM customer WHERE id = :customerId</operaton:inputParameter>
+          <operaton:inputParameter name="customerId">${customerId}</operaton:inputParameter>
+          <operaton:inputParameter name="resultFormat">SINGLE_ROW</operaton:inputParameter>
+          <operaton:inputParameter name="columnCase">lower</operaton:inputParameter>
+          <operaton:inputParameter name="allowEmpty">${allowEmpty}</operaton:inputParameter>
+          <operaton:outputParameter name="customer">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-single-f2" sourceRef="query-single-step" targetRef="query-single-wait"/>
+    <bpmn:userTask id="query-single-wait"/>
+    <bpmn:sequenceFlow id="query-single-f3" sourceRef="query-single-wait" targetRef="query-single-end"/>
+    <bpmn:endEvent id="query-single-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="query-value" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-value-start"/>
+    <bpmn:sequenceFlow id="query-value-f1" sourceRef="query-value-start" targetRef="query-value-step"/>
+    <bpmn:serviceTask id="query-value-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT credit_limit FROM customer WHERE id = :id</operaton:inputParameter>
+          <operaton:inputParameter name="id">${customerId}</operaton:inputParameter>
+          <operaton:inputParameter name="resultFormat">SINGLE_VALUE</operaton:inputParameter>
+          <operaton:outputParameter name="limit">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-value-f2" sourceRef="query-value-step" targetRef="query-value-wait"/>
+    <bpmn:userTask id="query-value-wait"/>
+    <bpmn:sequenceFlow id="query-value-f3" sourceRef="query-value-wait" targetRef="query-value-end"/>
+    <bpmn:endEvent id="query-value-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="query-map-params" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-map-params-start"/>
+    <bpmn:sequenceFlow id="query-map-params-f1" sourceRef="query-map-params-start" targetRef="query-map-params-step"/>
+    <bpmn:serviceTask id="query-map-params-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT id, name, credit_limit FROM customer WHERE id = :id</operaton:inputParameter>
+          <operaton:inputParameter name="parameters"><operaton:map><operaton:entry key="id">${customerId}</operaton:entry></operaton:map></operaton:inputParameter>
+          <operaton:inputParameter name="resultFormat">SINGLE_ROW</operaton:inputParameter>
+          <operaton:outputParameter name="customer">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-map-params-f2" sourceRef="query-map-params-step" targetRef="query-map-params-wait"/>
+    <bpmn:userTask id="query-map-params-wait"/>
+    <bpmn:sequenceFlow id="query-map-params-f3" sourceRef="query-map-params-wait" targetRef="query-map-params-end"/>
+    <bpmn:endEvent id="query-map-params-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="query-json" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-json-start"/>
+    <bpmn:sequenceFlow id="query-json-f1" sourceRef="query-json-start" targetRef="query-json-step"/>
+    <bpmn:serviceTask id="query-json-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT id, name, credit_limit FROM customer ORDER BY id</operaton:inputParameter>
+          <operaton:inputParameter name="resultAs">json</operaton:inputParameter>
+          <operaton:outputParameter name="customers">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-json-f2" sourceRef="query-json-step" targetRef="query-json-wait"/>
+    <bpmn:userTask id="query-json-wait"/>
+    <bpmn:sequenceFlow id="query-json-f3" sourceRef="query-json-wait" targetRef="query-json-end"/>
+    <bpmn:endEvent id="query-json-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="query-max-rows" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-max-rows-start"/>
+    <bpmn:sequenceFlow id="query-max-rows-f1" sourceRef="query-max-rows-start" targetRef="query-max-rows-step"/>
+    <bpmn:serviceTask id="query-max-rows-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT id, name, credit_limit FROM customer ORDER BY id</operaton:inputParameter>
+          <operaton:inputParameter name="maxRows">2</operaton:inputParameter>
+          <operaton:outputParameter name="customers">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-max-rows-f2" sourceRef="query-max-rows-step" targetRef="query-max-rows-wait"/>
+    <bpmn:userTask id="query-max-rows-wait"/>
+    <bpmn:sequenceFlow id="query-max-rows-f3" sourceRef="query-max-rows-wait" targetRef="query-max-rows-end"/>
+    <bpmn:endEvent id="query-max-rows-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="query-not-found" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-not-found-start"/>
+    <bpmn:sequenceFlow id="query-not-found-f1" sourceRef="query-not-found-start" targetRef="query-not-found-step"/>
+    <bpmn:serviceTask id="query-not-found-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT id, name, credit_limit FROM customer WHERE id = :id</operaton:inputParameter>
+          <operaton:inputParameter name="id">${customerId}</operaton:inputParameter>
+          <operaton:inputParameter name="resultFormat">SINGLE_ROW</operaton:inputParameter>
+          <operaton:inputParameter name="emptyResultErrorCode">CUSTOMER_NOT_FOUND</operaton:inputParameter>
+          <operaton:outputParameter name="customer">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-not-found-f2" sourceRef="query-not-found-step" targetRef="query-not-found-wait"/>
+    <bpmn:userTask id="query-not-found-wait"/>
+    <bpmn:sequenceFlow id="query-not-found-f3" sourceRef="query-not-found-wait" targetRef="query-not-found-end"/>
+    <bpmn:endEvent id="query-not-found-end"/>
+    <bpmn:boundaryEvent id="query-not-found-notFound" attachedToRef="query-not-found-step">
+      <bpmn:outgoing>query-not-found-f4</bpmn:outgoing>
+      <bpmn:errorEventDefinition errorRef="Error_notFound"/>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="query-not-found-f4" sourceRef="query-not-found-notFound" targetRef="query-not-found-endNotFound"/>
+    <bpmn:endEvent id="query-not-found-endNotFound"/>
+  </bpmn:process>
+
+  <bpmn:process id="update-insert" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="update-insert-start"/>
+    <bpmn:sequenceFlow id="update-insert-f1" sourceRef="update-insert-start" targetRef="update-insert-step"/>
+    <bpmn:serviceTask id="update-insert-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-update</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">INSERT INTO orders (customer_id, total, placed_at) VALUES (:customerId, :total, :placedAt)</operaton:inputParameter>
+          <operaton:inputParameter name="customerId">${customerId}</operaton:inputParameter>
+          <operaton:inputParameter name="total">${total}</operaton:inputParameter>
+          <operaton:inputParameter name="placedAt">${placedAt}</operaton:inputParameter>
+          <operaton:inputParameter name="returnGeneratedKeys">true</operaton:inputParameter>
+          <operaton:inputParameter name="columnCase">lower</operaton:inputParameter>
+          <operaton:outputParameter name="orderId">${generatedKey}</operaton:outputParameter>
+          <operaton:outputParameter name="updateCount">${updateCount}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="update-insert-f2" sourceRef="update-insert-step" targetRef="update-insert-wait"/>
+    <bpmn:userTask id="update-insert-wait"/>
+    <bpmn:sequenceFlow id="update-insert-f3" sourceRef="update-insert-wait" targetRef="update-insert-end"/>
+    <bpmn:endEvent id="update-insert-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="query-bad-sql" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="query-bad-sql-start"/>
+    <bpmn:sequenceFlow id="query-bad-sql-f1" sourceRef="query-bad-sql-start" targetRef="query-bad-sql-step"/>
+    <bpmn:serviceTask id="query-bad-sql-step" name="Run SQL">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-query</operaton:connectorId>
+          <operaton:inputOutput>
+          <operaton:inputParameter name="sql">SELECT * FROM nope</operaton:inputParameter>
+          <operaton:outputParameter name="x">${result}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="query-bad-sql-f2" sourceRef="query-bad-sql-step" targetRef="query-bad-sql-wait"/>
+    <bpmn:userTask id="query-bad-sql-wait"/>
+    <bpmn:sequenceFlow id="query-bad-sql-f3" sourceRef="query-bad-sql-wait" targetRef="query-bad-sql-end"/>
+    <bpmn:endEvent id="query-bad-sql-end"/>
+  </bpmn:process>
+</bpmn:definitions>
