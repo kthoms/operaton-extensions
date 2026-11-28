@@ -47,3 +47,8 @@ camunda-client-go
   Used in: clients/go (subscription.go, variable.go, task.go), reworked
   The MIT copyright and permission notice is kept in clients/go/NOTICE and
   clients/go/LICENSE-THIRD-PARTY.
+camunda-external-task-client-js
+  URL:     https://github.com/camunda/camunda-external-task-client-js
+  License: Apache-2.0 (Copyright 2018-2025 Camunda Services GmbH)
+  Files:   clients/js/src/{client,task-service,variables,file,engine-service,errors,auth}.ts
+           (ported to TypeScript and fetch, see clients/js/NOTICE)

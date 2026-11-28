@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_OrderShipping"
+                  targetNamespace="http://operaton.org/extensions/client-js/example">
+  <bpmn:error id="Error_InvalidAddress" name="Invalid address" errorCode="INVALID_ADDRESS"/>
+  <bpmn:process id="order-shipping" name="Order shipping" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="OrderReceived" name="Order received">
+      <bpmn:outgoing>Flow_ToShip</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="ShipOrder" name="Ship order" operaton:type="external" operaton:topic="ship-order">
+      <bpmn:incoming>Flow_ToShip</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToShipped</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="AddressInvalid" name="Address invalid" attachedToRef="ShipOrder">
+      <bpmn:outgoing>Flow_ToRejected</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorDef_InvalidAddress" errorRef="Error_InvalidAddress"/>
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="OrderShipped" name="Order shipped">
+      <bpmn:incoming>Flow_ToShipped</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="OrderRejected" name="Order rejected">
+      <bpmn:incoming>Flow_ToRejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToShip" sourceRef="OrderReceived" targetRef="ShipOrder"/>
+    <bpmn:sequenceFlow id="Flow_ToShipped" sourceRef="ShipOrder" targetRef="OrderShipped"/>
+    <bpmn:sequenceFlow id="Flow_ToRejected" sourceRef="AddressInvalid" targetRef="OrderRejected"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_OrderShipping">
+    <bpmndi:BPMNPlane id="Plane_OrderShipping" bpmnElement="order-shipping">
+      <bpmndi:BPMNShape id="Shape_OrderReceived" bpmnElement="OrderReceived">
+        <dc:Bounds x="152" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="133" y="145" width="75" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_ShipOrder" bpmnElement="ShipOrder">
+        <dc:Bounds x="250" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_OrderShipped" bpmnElement="OrderShipped">
+        <dc:Bounds x="412" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="395" y="145" width="71" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_OrderRejected" bpmnElement="OrderRejected">
+        <dc:Bounds x="412" y="222" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="393" y="265" width="75" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_AddressInvalid" bpmnElement="AddressInvalid">
+        <dc:Bounds x="282" y="142" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="320" y="185" width="70" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_ToShip" bpmnElement="Flow_ToShip">
+        <di:waypoint x="188" y="120"/><di:waypoint x="250" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_ToShipped" bpmnElement="Flow_ToShipped">
+        <di:waypoint x="350" y="120"/><di:waypoint x="412" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_ToRejected" bpmnElement="Flow_ToRejected">
+        <di:waypoint x="300" y="178"/><di:waypoint x="300" y="240"/><di:waypoint x="412" y="240"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

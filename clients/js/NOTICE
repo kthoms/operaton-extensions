@@ -1,0 +1,23 @@
+Operaton TypeScript External Task Client
+Copyright 2026 the Operaton Extensions contributors
+
+Licensed under the Apache License, Version 2.0.
+
+Third-party code
+================
+
+This client is a port of the Camunda external task client for JavaScript, rewritten in
+TypeScript and on top of the global `fetch`:
+
+  Project:   camunda-external-task-client-js
+  URL:       https://github.com/camunda/camunda-external-task-client-js
+  License:   Apache-2.0
+  Copyright: 2018-2025 Camunda Services GmbH
+  Files:     src/client.ts, src/task-service.ts, src/variables.ts, src/file.ts,
+             src/engine-service.ts, src/errors.ts, src/auth.ts
+             (structure, option names, event names and the REST calls follow the original)
+
+The original NOTICE reads:
+
+  Camunda
+  Copyright 2018-2025 Camunda Services GmbH
