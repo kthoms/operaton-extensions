@@ -21,6 +21,7 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 | [Micrometer Metrics Plugin](../plugins/micrometer-metrics/README.md) | Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer. | 2.0, 2.1, 2.2 | incubating |
 | [OpenTelemetry Tracing](../plugins/opentelemetry-tracing/README.md) | Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance. | 2.0, 2.1, 2.2 | incubating |
 | [Process Test Coverage](../plugins/process-test-coverage/README.md) | Measures which BPMN flow nodes and sequence flows your process tests execute, asserts a minimum coverage and writes an HTML and JSON report. | 2.0, 2.1, 2.2 | incubating |
+| [Variable Encryption Plugin](../plugins/variable-encryption/README.md) | Encrypts selected process variables at rest with AES-256-GCM, transparently to the engine API, including their history. | 2.0, 2.1, 2.2 | incubating |
 <!-- catalog:plugins:end -->
 
 ## Connectors
