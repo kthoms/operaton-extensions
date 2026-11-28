@@ -14,3 +14,8 @@ see docs/conventions/licensing-and-attribution.md.
   Apache-2.0, Copyright 2020 "J-IT" IT-Dienstleistungs GesmbH, Vienna, Austria
   Used in: plugins/incident-notifier (IncidentInfo, MessageRenderer, EmailChannel,
   IncidentDispatcher, IncidentNotifyingHandler, IncidentNotifierPlugin)
+- camunda-process-test-coverage, https://github.com/camunda-community-hub/camunda-process-test-coverage,
+  Apache-2.0, Copyright (C) 2019 - 2024 Camunda. Used in plugins/process-test-coverage:
+  internal/CoverageExecutionListener.java, internal/CoverageParseListener.java,
+  internal/CompensationCoverageHandler.java, model/ProcessModel.java,
+  ProcessTestCoverageExtension.java, ExcludeFromProcessCoverage.java

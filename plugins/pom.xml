@@ -17,6 +17,7 @@
   <modules>
     <!-- extensions:begin -->
     <module>incident-notifier</module>
+    <module>process-test-coverage</module>
     <!-- extensions:end -->
   </modules>
 </project>
