@@ -104,7 +104,14 @@ jobs:
           cache: maven # zizmor: ignore[cache-poisoning] build.yml never publishes; releases build in release-extension.yml without caches
       - name: Download Maven (retried; the distribution download is occasionally flaky)
         if: matrix.build == 'maven'
-        run: for attempt in 1 2 3 4 5; do ./mvnw -B -q -v && exit 0; echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10)); done; exit 1
+        run: |
+          # Maven Central rate-limits the runners (HTTP 429): the later attempts use Google's mirror of it
+          for attempt in 1 2 3 4 5; do
+            if [ "$attempt" -ge 3 ]; then export MVNW_REPOURL=https://maven-central.storage-download.googleapis.com/maven2; fi
+            ./mvnw -B -q -v && exit 0
+            echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10))
+          done
+          exit 1
       - name: Set up Node.js 22
         if: matrix.build == 'npm'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -178,7 +185,14 @@ jobs:
           cache: maven # zizmor: ignore[cache-poisoning] build.yml never publishes; releases build in release-extension.yml without caches
       - name: Download Maven (retried; the distribution download is occasionally flaky)
         if: matrix.build == 'maven'
-        run: for attempt in 1 2 3 4 5; do ./mvnw -B -q -v && exit 0; echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10)); done; exit 1
+        run: |
+          # Maven Central rate-limits the runners (HTTP 429): the later attempts use Google's mirror of it
+          for attempt in 1 2 3 4 5; do
+            if [ "$attempt" -ge 3 ]; then export MVNW_REPOURL=https://maven-central.storage-download.googleapis.com/maven2; fi
+            ./mvnw -B -q -v && exit 0
+            echo "Maven download failed (attempt $attempt), retrying"; sleep $((attempt * 10))
+          done
+          exit 1
       - name: Set up Node.js 22
         if: matrix.build == 'npm'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
