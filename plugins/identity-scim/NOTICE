@@ -1,0 +1,18 @@
+Operaton Identity SCIM plugin
+Copyright 2026 the Operaton Extensions contributors
+
+Licensed under the Apache License, Version 2.0.
+
+This extension contains code ported from the SCIM identity provider plugin of CIB seven
+https://github.com/cibseven/cibseven/tree/main/engine-plugins/identity-scim
+Apache License 2.0, Copyright CIB software GmbH and/or licensed to CIB software GmbH
+
+Ported files (original header kept, "Ported from" line added; each header lists what was kept and changed),
+all under operaton-plugin-identity-scim/src/main/java/org/operaton/extensions/plugin/identityscim/:
+- ScimIdentityProviderPlugin.java (from plugin/ScimIdentityProviderPlugin and ScimConfiguration: registration, properties)
+- internal/ScimIdentityProviderSession.java (from ScimIdentityProviderReadOnly: provider contract, authorization rules)
+- internal/ScimDirectory.java (from ScimIdentityProviderReadOnly: user, group and membership queries, mapping)
+- internal/ScimFilters.java (from ScimIdentityProviderReadOnly: criteria to SCIM filter translation)
+- internal/ScimHttpClient.java, internal/ScimOAuthTokens.java (from ScimClient: requests, authentication, OAuth2 client credentials)
+- internal/ScimTtlCache.java (from ScimSimpleCache)
+- internal/ScimUserQuery.java, ScimGroupQuery.java, ScimTenantQuery.java, ScimIdentityProviderFactory.java

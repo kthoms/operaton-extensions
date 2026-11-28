@@ -43,3 +43,8 @@ see docs/conventions/licensing-and-attribution.md.
   https://github.com/camunda/camunda-external-task-client-js
   Apache-2.0, Copyright 2018-2025 Camunda Services GmbH
   Used in: clients/js (src/{client,task-service,variables,file,engine-service,errors,auth}.ts), ported to TypeScript and fetch; see clients/js/NOTICE
+
+- cibseven/cibseven engine-plugins/identity-scim
+  https://github.com/cibseven/cibseven/tree/main/engine-plugins/identity-scim
+  Apache-2.0, Copyright CIB software GmbH and/or licensed to CIB software GmbH
+  Used in: plugins/identity-scim (ScimIdentityProviderPlugin, ScimIdentityProviderSession, ScimDirectory, ScimFilters, ScimHttpClient, ScimOAuthTokens, ScimTtlCache, query and factory classes; see plugins/identity-scim/NOTICE)

@@ -1,0 +1,1205 @@
+{
+  "mappings": [
+    {
+      "name": "All users",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "absent": true
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 4,
+          "startIndex": 1,
+          "itemsPerPage": 4,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-alice",
+              "userName": "alice",
+              "active": true,
+              "name": {
+                "givenName": "Alice",
+                "familyName": "Anderson"
+              },
+              "emails": [
+                {
+                  "value": "alice@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            },
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-bob",
+              "userName": "bob",
+              "active": true,
+              "name": {
+                "givenName": "Bob",
+                "familyName": "Brown"
+              },
+              "emails": [
+                {
+                  "value": "bob@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            },
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-carol",
+              "userName": "carol",
+              "active": true,
+              "name": {
+                "givenName": "Carol",
+                "familyName": "Clark"
+              },
+              "emails": [
+                {
+                  "value": "carol@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            },
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-demo",
+              "userName": "demo",
+              "active": true,
+              "name": {
+                "givenName": "Demo",
+                "familyName": "Admin"
+              },
+              "emails": [
+                {
+                  "value": "demo@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User alice",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "userName eq \"alice\""
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-alice",
+              "userName": "alice",
+              "active": true,
+              "name": {
+                "givenName": "Alice",
+                "familyName": "Anderson"
+              },
+              "emails": [
+                {
+                  "value": "alice@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User resource alice",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users/u-alice",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:User"
+          ],
+          "id": "u-alice",
+          "userName": "alice",
+          "active": true,
+          "name": {
+            "givenName": "Alice",
+            "familyName": "Anderson"
+          },
+          "emails": [
+            {
+              "value": "alice@example.com",
+              "type": "work",
+              "primary": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Groups of alice",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "members[value eq \"u-alice\"]"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-approvers",
+              "displayName": "approvers",
+              "members": [
+                {
+                  "value": "u-alice",
+                  "display": "alice",
+                  "type": "User"
+                },
+                {
+                  "value": "u-carol",
+                  "display": "carol",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User bob",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "userName eq \"bob\""
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-bob",
+              "userName": "bob",
+              "active": true,
+              "name": {
+                "givenName": "Bob",
+                "familyName": "Brown"
+              },
+              "emails": [
+                {
+                  "value": "bob@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User resource bob",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users/u-bob",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:User"
+          ],
+          "id": "u-bob",
+          "userName": "bob",
+          "active": true,
+          "name": {
+            "givenName": "Bob",
+            "familyName": "Brown"
+          },
+          "emails": [
+            {
+              "value": "bob@example.com",
+              "type": "work",
+              "primary": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Groups of bob",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "members[value eq \"u-bob\"]"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-finance",
+              "displayName": "finance",
+              "members": [
+                {
+                  "value": "u-bob",
+                  "display": "bob",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User carol",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "userName eq \"carol\""
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-carol",
+              "userName": "carol",
+              "active": true,
+              "name": {
+                "givenName": "Carol",
+                "familyName": "Clark"
+              },
+              "emails": [
+                {
+                  "value": "carol@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User resource carol",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users/u-carol",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:User"
+          ],
+          "id": "u-carol",
+          "userName": "carol",
+          "active": true,
+          "name": {
+            "givenName": "Carol",
+            "familyName": "Clark"
+          },
+          "emails": [
+            {
+              "value": "carol@example.com",
+              "type": "work",
+              "primary": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Groups of carol",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "members[value eq \"u-carol\"]"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-approvers",
+              "displayName": "approvers",
+              "members": [
+                {
+                  "value": "u-alice",
+                  "display": "alice",
+                  "type": "User"
+                },
+                {
+                  "value": "u-carol",
+                  "display": "carol",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User demo",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "userName eq \"demo\""
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ],
+              "id": "u-demo",
+              "userName": "demo",
+              "active": true,
+              "name": {
+                "givenName": "Demo",
+                "familyName": "Admin"
+              },
+              "emails": [
+                {
+                  "value": "demo@example.com",
+                  "type": "work",
+                  "primary": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "User resource demo",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users/u-demo",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:User"
+          ],
+          "id": "u-demo",
+          "userName": "demo",
+          "active": true,
+          "name": {
+            "givenName": "Demo",
+            "familyName": "Admin"
+          },
+          "emails": [
+            {
+              "value": "demo@example.com",
+              "type": "work",
+              "primary": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Groups of demo",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "members[value eq \"u-demo\"]"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-admin",
+              "displayName": "operaton-admin",
+              "members": [
+                {
+                  "value": "u-demo",
+                  "display": "demo",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "All groups",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "absent": true
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 3,
+          "startIndex": 1,
+          "itemsPerPage": 3,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-approvers",
+              "displayName": "approvers",
+              "members": [
+                {
+                  "value": "u-alice",
+                  "display": "alice",
+                  "type": "User"
+                },
+                {
+                  "value": "u-carol",
+                  "display": "carol",
+                  "type": "User"
+                }
+              ]
+            },
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-finance",
+              "displayName": "finance",
+              "members": [
+                {
+                  "value": "u-bob",
+                  "display": "bob",
+                  "type": "User"
+                }
+              ]
+            },
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-admin",
+              "displayName": "operaton-admin",
+              "members": [
+                {
+                  "value": "u-demo",
+                  "display": "demo",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Group approvers",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "displayName eq \"approvers\""
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-approvers",
+              "displayName": "approvers",
+              "members": [
+                {
+                  "value": "u-alice",
+                  "display": "alice",
+                  "type": "User"
+                },
+                {
+                  "value": "u-carol",
+                  "display": "carol",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Group resource approvers",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups/g-approvers",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:Group"
+          ],
+          "id": "g-approvers",
+          "displayName": "approvers",
+          "members": [
+            {
+              "value": "u-alice",
+              "display": "alice",
+              "type": "User"
+            },
+            {
+              "value": "u-carol",
+              "display": "carol",
+              "type": "User"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Group finance",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "displayName eq \"finance\""
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-finance",
+              "displayName": "finance",
+              "members": [
+                {
+                  "value": "u-bob",
+                  "display": "bob",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Group resource finance",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups/g-finance",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:Group"
+          ],
+          "id": "g-finance",
+          "displayName": "finance",
+          "members": [
+            {
+              "value": "u-bob",
+              "display": "bob",
+              "type": "User"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Group operaton-admin",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        },
+        "queryParameters": {
+          "filter": {
+            "equalTo": "displayName eq \"operaton-admin\""
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 1,
+          "startIndex": 1,
+          "itemsPerPage": 1,
+          "Resources": [
+            {
+              "schemas": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ],
+              "id": "g-admin",
+              "displayName": "operaton-admin",
+              "members": [
+                {
+                  "value": "u-demo",
+                  "display": "demo",
+                  "type": "User"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Group resource operaton-admin",
+      "priority": 1,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups/g-admin",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:Group"
+          ],
+          "id": "g-admin",
+          "displayName": "operaton-admin",
+          "members": [
+            {
+              "value": "u-demo",
+              "display": "demo",
+              "type": "User"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Unauthorized",
+      "priority": 10,
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/scim/v2/.*"
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:Error"
+          ],
+          "status": "401",
+          "detail": "Bearer token missing or wrong"
+        }
+      }
+    },
+    {
+      "name": "Password of alice",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/oauth/token",
+        "bodyPatterns": [
+          {
+            "matches": ".*grant_type=password.*username=alice&password=alice$"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "access_token": "not-used-by-operaton",
+          "token_type": "Bearer",
+          "expires_in": 60
+        }
+      }
+    },
+    {
+      "name": "Password of bob",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/oauth/token",
+        "bodyPatterns": [
+          {
+            "matches": ".*grant_type=password.*username=bob&password=bob$"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "access_token": "not-used-by-operaton",
+          "token_type": "Bearer",
+          "expires_in": 60
+        }
+      }
+    },
+    {
+      "name": "Password of carol",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/oauth/token",
+        "bodyPatterns": [
+          {
+            "matches": ".*grant_type=password.*username=carol&password=carol$"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "access_token": "not-used-by-operaton",
+          "token_type": "Bearer",
+          "expires_in": 60
+        }
+      }
+    },
+    {
+      "name": "Password of demo",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/oauth/token",
+        "bodyPatterns": [
+          {
+            "matches": ".*grant_type=password.*username=demo&password=demo$"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "access_token": "not-used-by-operaton",
+          "token_type": "Bearer",
+          "expires_in": 60
+        }
+      }
+    },
+    {
+      "name": "Wrong password",
+      "priority": 10,
+      "request": {
+        "method": "POST",
+        "urlPath": "/oauth/token"
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "error": "invalid_grant",
+          "error_description": "Invalid user credentials"
+        }
+      }
+    },
+    {
+      "name": "No such users (empty result, as a SCIM server answers a filter without a match)",
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Users",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 0,
+          "startIndex": 1,
+          "itemsPerPage": 0,
+          "Resources": []
+        }
+      }
+    },
+    {
+      "name": "No such groups (empty result, as a SCIM server answers a filter without a match)",
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPath": "/scim/v2/Groups",
+        "headers": {
+          "Authorization": {
+            "equalTo": "Bearer demo-scim-token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/scim+json"
+        },
+        "jsonBody": {
+          "schemas": [
+            "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+          ],
+          "totalResults": 0,
+          "startIndex": 1,
+          "itemsPerPage": 0,
+          "Resources": []
+        }
+      }
+    }
+  ]
+}

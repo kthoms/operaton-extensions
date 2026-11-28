@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_expense" targetNamespace="http://operaton.org/examples/identity-scim">
+  <bpmn:process id="expense-approval" name="Expense approval" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="expense-submitted" name="Expense submitted">
+      <bpmn:outgoing>flow-to-approval</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="approve-expense" name="Approve expense" operaton:candidateGroups="approvers">
+      <bpmn:incoming>flow-to-approval</bpmn:incoming>
+      <bpmn:outgoing>flow-to-decision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="expense-decision" name="Approved?" default="flow-rejected">
+      <bpmn:incoming>flow-to-decision</bpmn:incoming>
+      <bpmn:outgoing>flow-approved</bpmn:outgoing>
+      <bpmn:outgoing>flow-rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="book-payout" name="Book payout" operaton:candidateGroups="finance">
+      <bpmn:incoming>flow-approved</bpmn:incoming>
+      <bpmn:outgoing>flow-to-paid</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="expense-paid" name="Expense paid">
+      <bpmn:incoming>flow-to-paid</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="expense-rejected" name="Expense rejected">
+      <bpmn:incoming>flow-rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow-to-approval" sourceRef="expense-submitted" targetRef="approve-expense" />
+    <bpmn:sequenceFlow id="flow-to-decision" sourceRef="approve-expense" targetRef="expense-decision" />
+    <bpmn:sequenceFlow id="flow-approved" name="Approved" sourceRef="expense-decision" targetRef="book-payout">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow-rejected" name="Rejected" sourceRef="expense-decision" targetRef="expense-rejected" />
+    <bpmn:sequenceFlow id="flow-to-paid" sourceRef="book-payout" targetRef="expense-paid" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="expense-approval">
+      <bpmndi:BPMNShape id="expense-submitted_di" bpmnElement="expense-submitted">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="129" y="145" width="83" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="approve-expense_di" bpmnElement="approve-expense">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="expense-decision_di" bpmnElement="expense-decision" isMarkerVisible="true">
+        <dc:Bounds x="395" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="396" y="71" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="book-payout_di" bpmnElement="book-payout">
+        <dc:Bounds x="500" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="expense-paid_di" bpmnElement="expense-paid">
+        <dc:Bounds x="662" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="644" y="145" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="expense-rejected_di" bpmnElement="expense-rejected">
+        <dc:Bounds x="402" y="222" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="379" y="265" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-to-approval_di" bpmnElement="flow-to-approval">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-to-decision_di" bpmnElement="flow-to-decision">
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="395" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-approved_di" bpmnElement="flow-approved">
+        <di:waypoint x="445" y="120" />
+        <di:waypoint x="500" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="451" y="102" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-rejected_di" bpmnElement="flow-rejected">
+        <di:waypoint x="420" y="145" />
+        <di:waypoint x="420" y="222" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="426" y="175" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-to-paid_di" bpmnElement="flow-to-paid">
+        <di:waypoint x="600" y="120" />
+        <di:waypoint x="662" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

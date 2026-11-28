@@ -1,0 +1,24 @@
+# Local services for running the example: docker compose up -d --wait
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: operaton
+      POSTGRES_USER: operaton
+      POSTGRES_PASSWORD: operaton
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U operaton"]
+      interval: 5s
+      retries: 10
+  scim:
+    image: wiremock/wiremock:3.13.1   # stands in for Entra ID, Okta or Keycloak: users alice, bob, carol, demo
+    ports:
+      - "8089:8080"
+    volumes:
+      - ./compose/wiremock:/home/wiremock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/__admin/health"]
+      interval: 5s
+      retries: 20

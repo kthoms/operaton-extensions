@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    # no admin-user: users live in the SCIM directory, the engine's identity service is read-only.
+    # The SCIM group operaton-admin gets the administrator authorizations (ExpenseAuthorizations).
+    authorization:
+      enabled: true
+    database:
+      schema-update: true
+  extensions:
+    plugin:
+      identity-scim:
+        base-url: http://localhost:8089/scim/v2          # the WireMock stub of compose.yaml
+        authentication-type: bearer
+        bearer-token: demo-scim-token                     # throwaway, matches the stub
+        cache:
+          ttl: 30s
+        password-check:                                   # log in to Cockpit/Tasklist with a SCIM user
+          mode: oauth-password
+          token-url: http://localhost:8089/oauth/token    # stand-in for your identity provider
+          client-id: operaton-webapp

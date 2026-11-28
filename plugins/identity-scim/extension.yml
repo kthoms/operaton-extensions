@@ -1,0 +1,8 @@
+kind: plugin
+name: identity-scim
+title: Identity SCIM Plugin
+description: Resolves Operaton users, groups and group membership from a SCIM 2.0 server (Microsoft Entra ID, Okta, Keycloak and others) as a read-only identity provider.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating
