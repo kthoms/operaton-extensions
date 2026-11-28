@@ -1,0 +1,8 @@
+kind: client
+name: rust
+title: Rust External Task Client
+description: Async external task client for Operaton in Rust (crates.io operaton-external-task-client) on tokio and reqwest, with typed variables, filters, retries, BPMN errors, back-off and graceful shutdown.
+build: cargo
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

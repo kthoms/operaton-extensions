@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+    id="Definitions_invoice" targetNamespace="http://operaton.org/examples/invoice">
+  <bpmn:process id="invoice-processing" name="Invoice processing" isExecutable="true"
+      operaton:historyTimeToLive="P7D">
+    <bpmn:startEvent id="invoiceReceived" name="Invoice received">
+      <bpmn:outgoing>flowToProcess</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="processInvoice" name="Process invoice" operaton:type="external"
+        operaton:topic="process-invoice">
+      <bpmn:incoming>flowToProcess</bpmn:incoming>
+      <bpmn:outgoing>flowToProcessed</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="invoiceRejectedBoundary" name="Invoice rejected"
+        attachedToRef="processInvoice">
+      <bpmn:outgoing>flowToRejected</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="rejectedDef" errorRef="Error_rejected"/>
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="invoiceProcessed" name="Invoice processed">
+      <bpmn:incoming>flowToProcessed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="invoiceRejected" name="Invoice rejected">
+      <bpmn:incoming>flowToRejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flowToProcess" sourceRef="invoiceReceived" targetRef="processInvoice"/>
+    <bpmn:sequenceFlow id="flowToProcessed" name="accepted" sourceRef="processInvoice"
+        targetRef="invoiceProcessed"/>
+    <bpmn:sequenceFlow id="flowToRejected" name="rejected" sourceRef="invoiceRejectedBoundary"
+        targetRef="invoiceRejected"/>
+  </bpmn:process>
+  <bpmn:error id="Error_rejected" name="Invoice rejected" errorCode="INVOICE_REJECTED"/>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="invoice-processing">
+      <bpmndi:BPMNShape id="invoiceReceived_di" bpmnElement="invoiceReceived">
+        <dc:Bounds x="152" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="130" y="145" width="81" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="processInvoice_di" bpmnElement="processInvoice">
+        <dc:Bounds x="250" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="invoiceProcessed_di" bpmnElement="invoiceProcessed">
+        <dc:Bounds x="432" y="102" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="408" y="145" width="85" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="invoiceRejected_di" bpmnElement="invoiceRejected">
+        <dc:Bounds x="432" y="222" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="410" y="265" width="81" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="invoiceRejectedBoundary_di" bpmnElement="invoiceRejectedBoundary">
+        <dc:Bounds x="292" y="142" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="320" y="185" width="81" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flowToProcess_di" bpmnElement="flowToProcess">
+        <di:waypoint x="188" y="120"/><di:waypoint x="250" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowToProcessed_di" bpmnElement="flowToProcessed">
+        <di:waypoint x="350" y="120"/><di:waypoint x="432" y="120"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="370" y="102" width="44" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowToRejected_di" bpmnElement="flowToRejected">
+        <di:waypoint x="310" y="178"/><di:waypoint x="310" y="240"/><di:waypoint x="432" y="240"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="350" y="222" width="40" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

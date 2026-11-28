@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_jdbc_tx" targetNamespace="http://operaton.org/extensions/jdbc-test">
+  <bpmn:process id="insert-then-fail" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="insert"/>
+    <bpmn:serviceTask id="insert" name="Insert order">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-update</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="datasource">${ds}</operaton:inputParameter>
+            <operaton:inputParameter name="sql">INSERT INTO orders (customer_id, total) VALUES ('C-1', 1)</operaton:inputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="insert" targetRef="fail"/>
+    <bpmn:serviceTask id="fail" name="Fail" operaton:expression="#{nothing.foo()}"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="fail" targetRef="end"/>
+    <bpmn:endEvent id="end"/>
+  </bpmn:process>
+
+  <bpmn:process id="insert-ok" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="s2"/>
+    <bpmn:sequenceFlow id="g1" sourceRef="s2" targetRef="insert2"/>
+    <bpmn:serviceTask id="insert2" name="Insert order">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>jdbc-update</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="datasource">${ds}</operaton:inputParameter>
+            <operaton:inputParameter name="sql">INSERT INTO orders (customer_id, total) VALUES ('C-1', 1)</operaton:inputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="g2" sourceRef="insert2" targetRef="w2"/>
+    <bpmn:userTask id="w2"/>
+    <bpmn:sequenceFlow id="g3" sourceRef="w2" targetRef="e2"/>
+    <bpmn:endEvent id="e2"/>
+  </bpmn:process>
+</bpmn:definitions>

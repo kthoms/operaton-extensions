@@ -1,0 +1,8 @@
+kind: client
+name: go
+title: Go External Task Client
+description: External task client for Operaton in Go - long-polling fetch-and-lock, typed variables, retries and BPMN errors, graceful shutdown, standard library only.
+build: go
+compatibility: [2.0, 2.1, 2.2]
+since: 2.0
+status: incubating

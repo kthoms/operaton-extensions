@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_s3-delegates" targetNamespace="http://operaton.org/extensions/s3/test">
+  <bpmn:process id="s3-delegates" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:serviceTask id="put" name="put" operaton:class="org.operaton.extensions.connector.s3.delegate.S3PutDelegate">
+      <bpmn:extensionElements>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">${objectKey}</operaton:inputParameter>
+          <operaton:inputParameter name="contentVariable">document</operaton:inputParameter>
+          <operaton:inputParameter name="contentType">${contentType}</operaton:inputParameter>
+          <operaton:inputParameter name="metadata"><operaton:map><operaton:entry key="owner">${owner}</operaton:entry></operaton:map></operaton:inputParameter>
+        </operaton:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="presign" name="presign" operaton:class="org.operaton.extensions.connector.s3.delegate.S3PresignDelegate">
+      <bpmn:extensionElements>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">${objectKey}</operaton:inputParameter>
+          <operaton:inputParameter name="expiresIn">PT10M</operaton:inputParameter>
+          <operaton:inputParameter name="resultPrefix">link</operaton:inputParameter>
+        </operaton:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="list" name="list" operaton:class="org.operaton.extensions.connector.s3.delegate.S3ListDelegate">
+      <bpmn:extensionElements>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="prefix">${prefix}</operaton:inputParameter>
+        </operaton:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="get" name="get" operaton:class="org.operaton.extensions.connector.s3.delegate.S3GetDelegate">
+      <bpmn:extensionElements>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">${objectKey}</operaton:inputParameter>
+          <operaton:inputParameter name="targetVariable">downloaded</operaton:inputParameter>
+        </operaton:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="copy" name="copy" operaton:class="org.operaton.extensions.connector.s3.delegate.S3CopyDelegate">
+      <bpmn:extensionElements>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="sourceKey">${objectKey}</operaton:inputParameter>
+          <operaton:inputParameter name="targetKey">archive/${documentName}</operaton:inputParameter>
+          <operaton:inputParameter name="move">true</operaton:inputParameter>
+          <operaton:inputParameter name="resultPrefix">copy</operaton:inputParameter>
+        </operaton:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="delete" name="delete" operaton:class="org.operaton.extensions.connector.s3.delegate.S3DeleteDelegate">
+      <bpmn:extensionElements>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="key">archive/${documentName}</operaton:inputParameter>
+          <operaton:inputParameter name="resultPrefix">del</operaton:inputParameter>
+        </operaton:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f0" sourceRef="start" targetRef="put"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="put" targetRef="presign"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="presign" targetRef="list"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="list" targetRef="get"/>
+    <bpmn:sequenceFlow id="f4" sourceRef="get" targetRef="copy"/>
+    <bpmn:sequenceFlow id="f5" sourceRef="copy" targetRef="delete"/>
+    <bpmn:sequenceFlow id="f6" sourceRef="delete" targetRef="end"/>
+    <bpmn:endEvent id="end"/>
+  </bpmn:process>
+</bpmn:definitions>

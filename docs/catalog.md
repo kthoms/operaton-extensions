@@ -15,19 +15,30 @@ Status is `incubating`, `stable` or `deprecated`. "Operaton" is the supported mi
 
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
-| [Incident Notifier](../plugins/incident-notifier/README.md) | Notifies operators about incidents by mail, webhook, Slack and Microsoft Teams, with per-process-definition throttling. | 2.0, 2.1, 2.2 | incubating |
+| [History Kafka Plugin](../plugins/history-kafka/README.md) | Publishes Operaton history events to Apache Kafka after the engine transaction commits. | 2.0, 2.1, 2.2 | incubating |
+| [Incident Notifier Plugin](../plugins/incident-notifier/README.md) | Notifies operators about Operaton incidents by mail, webhook, Slack and Microsoft Teams with throttling. | 2.0, 2.1, 2.2 | incubating |
+| [Micrometer Metrics Plugin](../plugins/micrometer-metrics/README.md) | Exposes Operaton engine metrics, job backlog, incidents and process instance counters through Micrometer. | 2.0, 2.1, 2.2 | incubating |
+| [OpenTelemetry Tracing](../plugins/opentelemetry-tracing/README.md) | Creates OpenTelemetry spans for process instances, activities, jobs and external tasks and propagates the trace context through the process instance. | 2.0, 2.1, 2.2 | incubating |
+| [Process Test Coverage](../plugins/process-test-coverage/README.md) | Measures which BPMN flow nodes and sequence flows your process tests execute, asserts a minimum coverage and writes an HTML and JSON report. | 2.0, 2.1, 2.2 | incubating |
 
 ## Connectors
 
 | Extension | What it does | Operaton | Status |
 |---|---|---|---|
-| | | | |
+| [AI LLM connector](../connectors/ai-llm/README.md) | Calls large language models from BPMN processes - prompts, schema-validated structured extraction and a bounded tool-calling agent, built on LangChain4j. | 2.0, 2.1, 2.2 | incubating |
+| [JDBC connector](../connectors/jdbc/README.md) | Run parameterised SQL queries and updates against relational databases from BPMN processes. | 2.0, 2.1, 2.2 | incubating |
+| [Kafka connector](../connectors/kafka/README.md) | Produce to and consume from Apache Kafka in Operaton processes: send records after the engine transaction commits, start processes and correlate messages from records. | 2.0, 2.1, 2.2 | incubating |
+| [Mail connector](../connectors/mail/README.md) | Sends, polls and deletes mail over SMTP/IMAP from BPMN, and starts or correlates processes from incoming mail. | 2.0, 2.1, 2.2 | incubating |
+| [S3 Connector](../connectors/s3/README.md) | Store, fetch, list, copy, delete and presign objects on S3-compatible storage from BPMN processes. | 2.0, 2.1, 2.2 | incubating |
 
 ## Clients
 
 | Language | Package | What it does | Operaton | Status |
 |---|---|---|---|---|
-| | | | | |
+| [TypeScript / JavaScript](../clients/js/README.md) | `@operaton-extensions/external-task-client` (npm) | External task client for Operaton in TypeScript for Node.js 22+ with long polling, typed variables and graceful shutdown. | 2.0, 2.1, 2.2 | incubating |
+| [Python](../clients/python/README.md) | `operaton-external-task-client` (PyPI) | External task client for Operaton in Python (PyPI operaton-external-task-client) with sync and asyncio workers, typed variables, filters, retries, BPMN errors and back-off. | 2.0, 2.1, 2.2 | incubating |
+| [Go](../clients/go/README.md) | `github.com/kthoms/operaton-extensions/clients/go` | External task client for Operaton in Go - long-polling fetch-and-lock, typed variables, retries and BPMN errors, graceful shutdown, standard library only. | 2.0, 2.1, 2.2 | incubating |
+| [Rust](../clients/rust/README.md) | `operaton-external-task-client` (crates.io) | Async external task client for Operaton in Rust (crates.io operaton-external-task-client) on tokio and reqwest, with typed variables, filters, retries, BPMN errors, back-off and graceful shutdown. | 2.0, 2.1, 2.2 | incubating |
 
 Entries are added with each extension, in the pull request that introduces it.
 
@@ -37,24 +48,6 @@ Entries are added with each extension, in the pull request that introduces it.
 Ideas waiting for an owner. Each line says where the idea comes from and whether code can be
 reused (see [licensing-and-attribution.md](conventions/licensing-and-attribution.md)). An agent or
 contributor picks one, opens an issue, and moves it to the tables above with the PR.
-
-### In progress (first wave)
-
-| Kind | Extension | What it does | Source / reuse |
-|---|---|---|---|
-| plugin | `process-test-coverage` | Coverage of BPMN flow nodes and sequence flows by tests, HTML report, coverage assertions | camunda-community-hub/camunda-process-test-coverage (Apache-2.0, archived): port with attribution |
-| plugin | `micrometer-metrics` | Micrometer metrics: engine metrics, job backlog, incidents, instance counters | idea from camunda-prometheus-process-engine-plugin (MIT, archived): fresh |
-| plugin | `opentelemetry-tracing` | OpenTelemetry spans for activities, jobs and external tasks | fresh |
-| plugin | `history-kafka` | Streams history events to Kafka after commit (JSON / CloudEvents) | fresh |
-| connector | `mail` | Send, poll, delete mail over SMTP/IMAP; polling can start processes | camunda-community-hub/camunda-platform-7-mail (Apache-2.0): port with attribution |
-| connector | `kafka` | Produce after commit; consume to start and correlate | fresh (Camunda 8 connectors are not reusable) |
-| connector | `jdbc` | Parameterised SQL query/update mapped to variables | fresh |
-| connector | `ai-llm` | LLM prompts with structured output, optional agent/tool loop (LangChain4j) | cibseven `connect/ai-agent` (Apache-2.0): port the core |
-| connector | `s3` | Put, get, list, delete, presign on S3-compatible storage | fresh |
-| client | `js` | TypeScript external task client | camunda/camunda-external-task-client-js (Apache-2.0): port with attribution |
-| client | `python` | Python external task client | camunda-community-hub/camunda-external-task-client-python3 (Apache-2.0): port with attribution |
-| client | `go` | Go external task client | citilinkru/camunda-client-go (MIT): port, keep the MIT notice |
-| client | `rust` | Rust external task client | fresh |
 
 ### Next candidates
 

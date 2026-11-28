@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_jdbc_delegate" targetNamespace="http://operaton.org/extensions/jdbc-test">
+
+  <bpmn:process id="delegate-query" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="delegate-query-start"/>
+    <bpmn:sequenceFlow id="delegate-query-f1" sourceRef="delegate-query-start" targetRef="delegate-query-step"/>
+    <bpmn:serviceTask id="delegate-query-step" name="Run SQL" operaton:class="org.operaton.extensions.connector.jdbc.delegate.JdbcQueryDelegate">
+      <bpmn:extensionElements>
+          <operaton:field name="sql"><operaton:string>SELECT id, name FROM customer WHERE id = :customerId</operaton:string></operaton:field>
+          <operaton:field name="resultFormat"><operaton:string>SINGLE_ROW</operaton:string></operaton:field>
+          <operaton:field name="resultVariable"><operaton:string>customer</operaton:string></operaton:field>
+          <operaton:field name="rowCountVariable"><operaton:string>rows</operaton:string></operaton:field>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="delegate-query-f2" sourceRef="delegate-query-step" targetRef="delegate-query-wait"/>
+    <bpmn:userTask id="delegate-query-wait"/>
+    <bpmn:sequenceFlow id="delegate-query-f3" sourceRef="delegate-query-wait" targetRef="delegate-query-end"/>
+    <bpmn:endEvent id="delegate-query-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="delegate-update" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="delegate-update-start"/>
+    <bpmn:sequenceFlow id="delegate-update-f1" sourceRef="delegate-update-start" targetRef="delegate-update-step"/>
+    <bpmn:serviceTask id="delegate-update-step" name="Run SQL" operaton:class="org.operaton.extensions.connector.jdbc.delegate.JdbcUpdateDelegate">
+      <bpmn:extensionElements>
+          <operaton:field name="sql"><operaton:string>INSERT INTO orders (customer_id, total) VALUES (:customerId, :total)</operaton:string></operaton:field>
+          <operaton:field name="generatedKeyVariable"><operaton:string>orderId</operaton:string></operaton:field>
+          <operaton:field name="updateCountVariable"><operaton:string>updated</operaton:string></operaton:field>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="delegate-update-f2" sourceRef="delegate-update-step" targetRef="delegate-update-wait"/>
+    <bpmn:userTask id="delegate-update-wait"/>
+    <bpmn:sequenceFlow id="delegate-update-f3" sourceRef="delegate-update-wait" targetRef="delegate-update-end"/>
+    <bpmn:endEvent id="delegate-update-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="delegate-dynamic-sql" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="delegate-dynamic-sql-start"/>
+    <bpmn:sequenceFlow id="delegate-dynamic-sql-f1" sourceRef="delegate-dynamic-sql-start" targetRef="delegate-dynamic-sql-step"/>
+    <bpmn:serviceTask id="delegate-dynamic-sql-step" name="Run SQL" operaton:class="org.operaton.extensions.connector.jdbc.delegate.JdbcQueryDelegate">
+      <bpmn:extensionElements>
+          <operaton:field name="sql"><operaton:expression>${sqlText}</operaton:expression></operaton:field>
+          <operaton:field name="resultVariable"><operaton:string>out</operaton:string></operaton:field>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="delegate-dynamic-sql-f2" sourceRef="delegate-dynamic-sql-step" targetRef="delegate-dynamic-sql-wait"/>
+    <bpmn:userTask id="delegate-dynamic-sql-wait"/>
+    <bpmn:sequenceFlow id="delegate-dynamic-sql-f3" sourceRef="delegate-dynamic-sql-wait" targetRef="delegate-dynamic-sql-end"/>
+    <bpmn:endEvent id="delegate-dynamic-sql-end"/>
+  </bpmn:process>
+
+  <bpmn:process id="delegate-missing-param" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="delegate-missing-param-start"/>
+    <bpmn:sequenceFlow id="delegate-missing-param-f1" sourceRef="delegate-missing-param-start" targetRef="delegate-missing-param-step"/>
+    <bpmn:serviceTask id="delegate-missing-param-step" name="Run SQL" operaton:class="org.operaton.extensions.connector.jdbc.delegate.JdbcQueryDelegate">
+      <bpmn:extensionElements>
+          <operaton:field name="sql"><operaton:string>SELECT id FROM customer WHERE id = :nothing</operaton:string></operaton:field>
+          <operaton:field name="resultVariable"><operaton:string>out</operaton:string></operaton:field>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="delegate-missing-param-f2" sourceRef="delegate-missing-param-step" targetRef="delegate-missing-param-wait"/>
+    <bpmn:userTask id="delegate-missing-param-wait"/>
+    <bpmn:sequenceFlow id="delegate-missing-param-f3" sourceRef="delegate-missing-param-wait" targetRef="delegate-missing-param-end"/>
+    <bpmn:endEvent id="delegate-missing-param-end"/>
+  </bpmn:process>
+</bpmn:definitions>

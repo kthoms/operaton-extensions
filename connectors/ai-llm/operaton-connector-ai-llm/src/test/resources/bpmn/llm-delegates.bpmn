@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="definitions" targetNamespace="http://operaton.org/extensions/test">
+  <bpmn:process id="llm-delegates" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="prompt"/>
+    <bpmn:serviceTask id="prompt" name="Write greeting" operaton:class="org.operaton.extensions.connector.aillm.delegate.LlmPromptDelegate">
+      <bpmn:extensionElements>
+        <operaton:field name="userPrompt"><operaton:string>Greet {{name}}</operaton:string></operaton:field>
+        <operaton:field name="temperature"><operaton:expression>${0.5}</operaton:expression></operaton:field>
+        <operaton:field name="resultVariable"><operaton:string>greeting</operaton:string></operaton:field>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="prompt" targetRef="extract"/>
+    <bpmn:serviceTask id="extract" name="Extract address" operaton:class="org.operaton.extensions.connector.aillm.delegate.LlmExtractDelegate">
+      <bpmn:extensionElements>
+        <operaton:field name="userPrompt"><operaton:string>Extract the city from: {{letter}}</operaton:string></operaton:field>
+        <operaton:field name="jsonSchema"><operaton:string>{"type":"object","required":["city"],"properties":{"city":{"type":"string"}}}</operaton:string></operaton:field>
+        <operaton:field name="resultVariable"><operaton:string>address</operaton:string></operaton:field>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f3" sourceRef="extract" targetRef="agent"/>
+    <bpmn:serviceTask id="agent" name="Look up order" operaton:class="org.operaton.extensions.connector.aillm.delegate.LlmAgentDelegate">
+      <bpmn:extensionElements>
+        <operaton:field name="userPrompt"><operaton:string>Status of the order?</operaton:string></operaton:field>
+        <operaton:field name="readableVariables"><operaton:string>orderId</operaton:string></operaton:field>
+        <operaton:field name="resultVariable"><operaton:string>status</operaton:string></operaton:field>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f4" sourceRef="agent" targetRef="wait"/>
+    <bpmn:userTask id="wait" name="Check results"/>
+  </bpmn:process>
+</bpmn:definitions>

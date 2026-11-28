@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_Order" targetNamespace="http://operaton.org/extensions/kafka/example">
+  <bpmn:process id="order-process" name="Order process" isExecutable="true" operaton:historyTimeToLive="30">
+    <bpmn:startEvent id="Start_OrderPlaced" name="Order placed">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_ChargePayment" name="Charge payment" operaton:delegateExpression="${paymentService}">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Approved" name="Payment approved?" default="Flow_Rejected">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_PublishConfirmed" name="Publish order-confirmed">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="topic">order-confirmed</operaton:inputParameter>
+            <operaton:inputParameter name="key">${execution.processBusinessKey}</operaton:inputParameter>
+            <operaton:inputParameter name="value">${paymentService.event(execution, 'confirmed')}</operaton:inputParameter>
+          </operaton:inputOutput>
+          <operaton:connectorId>kafka-produce</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_PublishRejected" name="Publish order-rejected">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="topic">order-rejected</operaton:inputParameter>
+            <operaton:inputParameter name="key">${execution.processBusinessKey}</operaton:inputParameter>
+            <operaton:inputParameter name="value">${paymentService.event(execution, 'rejected')}</operaton:inputParameter>
+          </operaton:inputOutput>
+          <operaton:connectorId>kafka-produce</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Confirmed" name="Order confirmed">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Rejected" name="Order rejected">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_OrderPlaced" targetRef="Task_ChargePayment"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_ChargePayment" targetRef="Gateway_Approved"/>
+    <bpmn:sequenceFlow id="Flow_Approved" name="approved" sourceRef="Gateway_Approved" targetRef="Task_PublishConfirmed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${paymentApproved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Rejected" name="rejected" sourceRef="Gateway_Approved" targetRef="Task_PublishRejected"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_PublishConfirmed" targetRef="End_Confirmed"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_PublishRejected" targetRef="End_Rejected"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="order-process">
+      <bpmndi:BPMNShape id="Start_OrderPlaced_di" bpmnElement="Start_OrderPlaced">
+        <dc:Bounds x="152" y="100" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="138" y="143" width="64" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ChargePayment_di" bpmnElement="Task_ChargePayment">
+        <dc:Bounds x="240" y="78" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Approved_di" bpmnElement="Gateway_Approved" isMarkerVisible="true">
+        <dc:Bounds x="395" y="93" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="376" y="63" width="88" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PublishConfirmed_di" bpmnElement="Task_PublishConfirmed">
+        <dc:Bounds x="520" y="78" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PublishRejected_di" bpmnElement="Task_PublishRejected">
+        <dc:Bounds x="520" y="218" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Confirmed_di" bpmnElement="End_Confirmed">
+        <dc:Bounds x="702" y="100" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="681" y="143" width="78" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected">
+        <dc:Bounds x="702" y="240" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="685" y="283" width="70" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="188" y="118"/><di:waypoint x="240" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="340" y="118"/><di:waypoint x="395" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Approved_di" bpmnElement="Flow_Approved">
+        <di:waypoint x="445" y="118"/><di:waypoint x="520" y="118"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="460" y="100" width="42" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Rejected_di" bpmnElement="Flow_Rejected">
+        <di:waypoint x="420" y="143"/><di:waypoint x="420" y="258"/><di:waypoint x="520" y="258"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="428" y="190" width="38" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="620" y="118"/><di:waypoint x="702" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="620" y="258"/><di:waypoint x="702" y="258"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

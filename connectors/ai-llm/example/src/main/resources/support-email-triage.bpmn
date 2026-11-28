@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+                  id="Definitions_support-email-triage"
+                  targetNamespace="http://operaton.org/extensions/connector/ai-llm/example">
+  <bpmn:process id="support-email-triage" name="Support e-mail triage" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="EmailReceived" name="Support e-mail received">
+      <bpmn:outgoing>Flow_ToClassify</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_ToClassify" sourceRef="EmailReceived" targetRef="ClassifyEmail"/>
+    <bpmn:serviceTask id="ClassifyEmail" name="Classify e-mail" operaton:asyncBefore="true">
+      <bpmn:extensionElements>
+        <operaton:failedJobRetryTimeCycle>R2/PT2S</operaton:failedJobRetryTimeCycle>
+        <operaton:connector>
+          <operaton:connectorId>llm-extract</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="systemPrompt">You triage e-mails sent to the customer support of an online shop. Categories: billing (invoices, payments, refunds), technical (the shop or an app does not work), account (login, address, personal data), other. Urgency is high when the customer is blocked, threatens to cancel or reports a double charge; low for questions without a deadline; otherwise normal.</operaton:inputParameter>
+            <operaton:inputParameter name="userPrompt">Subject: {{subject}}
+
+{{body}}</operaton:inputParameter>
+            <operaton:inputParameter name="jsonSchema">{
+  "type": "object",
+  "required": ["category", "urgency", "sentiment", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "category": {"enum": ["billing", "technical", "account", "other"]},
+    "urgency": {"enum": ["low", "normal", "high"]},
+    "sentiment": {"enum": ["positive", "neutral", "negative"]},
+    "summary": {"type": "string", "maxLength": 200}
+  }
+}</operaton:inputParameter>
+            <operaton:outputParameter name="classification">${result}</operaton:outputParameter>
+            <operaton:outputParameter name="classificationTokens">${totalTokens}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToClassify</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToRoute</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_ToRoute" sourceRef="ClassifyEmail" targetRef="RouteEmail"/>
+    <bpmn:exclusiveGateway id="RouteEmail" name="Route by classification" default="Flow_Other">
+      <bpmn:incoming>Flow_ToRoute</bpmn:incoming>
+      <bpmn:outgoing>Flow_Urgent</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Billing</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Other</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Urgent" name="urgent" sourceRef="RouteEmail" targetRef="AnswerEscalatedEmail">
+      <bpmn:conditionExpression>${classification.urgency == 'high'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Billing" name="billing" sourceRef="RouteEmail" targetRef="AnswerBillingQuestion">
+      <bpmn:conditionExpression>${classification.urgency != 'high' &amp;&amp; classification.category == 'billing'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Other" name="anything else" sourceRef="RouteEmail" targetRef="AnswerSupportEmail"/>
+    <bpmn:userTask id="AnswerEscalatedEmail" name="Answer escalated e-mail" operaton:candidateGroups="leads">
+      <bpmn:incoming>Flow_Urgent</bpmn:incoming>
+      <bpmn:outgoing>Flow_EscalatedDone</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="AnswerBillingQuestion" name="Answer billing question" operaton:candidateGroups="billing">
+      <bpmn:incoming>Flow_Billing</bpmn:incoming>
+      <bpmn:outgoing>Flow_BillingDone</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="AnswerSupportEmail" name="Answer support e-mail" operaton:candidateGroups="support">
+      <bpmn:incoming>Flow_Other</bpmn:incoming>
+      <bpmn:outgoing>Flow_SupportDone</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_EscalatedDone" sourceRef="AnswerEscalatedEmail" targetRef="EscalatedEmailAnswered"/>
+    <bpmn:sequenceFlow id="Flow_BillingDone" sourceRef="AnswerBillingQuestion" targetRef="BillingQuestionAnswered"/>
+    <bpmn:sequenceFlow id="Flow_SupportDone" sourceRef="AnswerSupportEmail" targetRef="SupportEmailAnswered"/>
+    <bpmn:endEvent id="EscalatedEmailAnswered" name="Escalated e-mail answered">
+      <bpmn:incoming>Flow_EscalatedDone</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="BillingQuestionAnswered" name="Billing question answered">
+      <bpmn:incoming>Flow_BillingDone</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="SupportEmailAnswered" name="Support e-mail answered">
+      <bpmn:incoming>Flow_SupportDone</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_support-email-triage">
+    <bpmndi:BPMNPlane id="Plane_support-email-triage" bpmnElement="support-email-triage">
+      <bpmndi:BPMNShape id="EmailReceived_di" bpmnElement="EmailReceived">
+        <dc:Bounds x="152" y="212" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="130" y="255" width="80" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ClassifyEmail_di" bpmnElement="ClassifyEmail">
+        <dc:Bounds x="240" y="190" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RouteEmail_di" bpmnElement="RouteEmail" isMarkerVisible="true">
+        <dc:Bounds x="395" y="205" width="50" height="50"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="380" y="262" width="80" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AnswerEscalatedEmail_di" bpmnElement="AnswerEscalatedEmail">
+        <dc:Bounds x="520" y="70" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AnswerBillingQuestion_di" bpmnElement="AnswerBillingQuestion">
+        <dc:Bounds x="520" y="190" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AnswerSupportEmail_di" bpmnElement="AnswerSupportEmail">
+        <dc:Bounds x="520" y="310" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EscalatedEmailAnswered_di" bpmnElement="EscalatedEmailAnswered">
+        <dc:Bounds x="682" y="92" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="660" y="135" width="80" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BillingQuestionAnswered_di" bpmnElement="BillingQuestionAnswered">
+        <dc:Bounds x="682" y="212" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="660" y="255" width="80" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SupportEmailAnswered_di" bpmnElement="SupportEmailAnswered">
+        <dc:Bounds x="682" y="332" width="36" height="36"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="660" y="375" width="80" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToClassify_di" bpmnElement="Flow_ToClassify">
+        <di:waypoint x="188" y="230"/>
+        <di:waypoint x="240" y="230"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToRoute_di" bpmnElement="Flow_ToRoute">
+        <di:waypoint x="340" y="230"/>
+        <di:waypoint x="395" y="230"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Urgent_di" bpmnElement="Flow_Urgent">
+        <di:waypoint x="420" y="205"/>
+        <di:waypoint x="420" y="110"/>
+        <di:waypoint x="520" y="110"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="440" y="92" width="40" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Billing_di" bpmnElement="Flow_Billing">
+        <di:waypoint x="445" y="230"/>
+        <di:waypoint x="520" y="230"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="465" y="212" width="40" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Other_di" bpmnElement="Flow_Other">
+        <di:waypoint x="420" y="255"/>
+        <di:waypoint x="420" y="350"/>
+        <di:waypoint x="520" y="350"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="430" y="332" width="70" height="14"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_EscalatedDone_di" bpmnElement="Flow_EscalatedDone">
+        <di:waypoint x="620" y="110"/>
+        <di:waypoint x="682" y="110"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BillingDone_di" bpmnElement="Flow_BillingDone">
+        <di:waypoint x="620" y="230"/>
+        <di:waypoint x="682" y="230"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SupportDone_di" bpmnElement="Flow_SupportDone">
+        <di:waypoint x="620" y="350"/>
+        <di:waypoint x="682" y="350"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

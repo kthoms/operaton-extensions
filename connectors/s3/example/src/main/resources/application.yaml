@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operaton
+    username: operaton
+    password: operaton
+operaton:
+  bpm:
+    admin-user:
+      id: demo
+      password: demo
+    database:
+      schema-update: true
+  extensions:
+    connector:
+      s3:
+        default-store: documents
+        stores:
+          documents:
+            # LocalStack from compose.yaml; point these at AWS S3 or MinIO in a real setup
+            endpoint: http://localhost:4566
+            region: us-east-1
+            bucket: documents
+            access-key: test
+            secret-key: test
+            max-download-bytes: 10485760
+            presign-expiry: PT24H

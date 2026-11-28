@@ -1,0 +1,8 @@
+kind: connector
+name: ai-llm
+title: AI LLM connector
+description: Calls large language models from BPMN processes - prompts, schema-validated structured extraction and a bounded tool-calling agent, built on LangChain4j.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_poll" targetNamespace="http://operaton.org/extensions/mail/test">
+  <bpmn:process id="poll-delete" isExecutable="true" operaton:historyTimeToLive="1">
+    <bpmn:startEvent id="start" />
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="poll" />
+    <bpmn:serviceTask id="poll" name="Poll mails">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>mail-poll</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="subject">Invoice</operaton:inputParameter>
+            <operaton:inputParameter name="unreadOnly">true</operaton:inputParameter>
+            <operaton:outputParameter name="mails">${mails}</operaton:outputParameter>
+            <operaton:outputParameter name="mailCount">${count}</operaton:outputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f2" sourceRef="poll" targetRef="task" />
+    <bpmn:serviceTask id="task" name="Delete mails">
+      <bpmn:extensionElements>
+        <operaton:connector>
+          <operaton:connectorId>mail-delete</operaton:connectorId>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="mails">${mails}</operaton:inputParameter>
+          </operaton:inputOutput>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f3" sourceRef="task" targetRef="end" />
+    <bpmn:endEvent id="end" />
+  </bpmn:process>
+</bpmn:definitions>

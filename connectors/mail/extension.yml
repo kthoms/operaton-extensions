@@ -1,0 +1,8 @@
+kind: connector
+name: mail
+title: Mail connector
+description: Sends, polls and deletes mail over SMTP/IMAP from BPMN, and starts or correlates processes from incoming mail.
+build: maven
+compatibility: [2.0, 2.1, 2.2]
+since: 2.2
+status: incubating

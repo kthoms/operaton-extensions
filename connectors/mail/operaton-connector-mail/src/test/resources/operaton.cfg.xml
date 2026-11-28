@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="processEngineConfiguration" class="org.operaton.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+    <property name="jdbcUrl" value="jdbc:h2:mem:operaton;DB_CLOSE_DELAY=1000" />
+    <property name="databaseSchemaUpdate" value="true" />
+    <property name="jobExecutorActivate" value="false" />
+    <property name="history" value="full" />
+    <property name="processEnginePlugins">
+      <list>
+        <bean class="org.operaton.connect.plugin.impl.ConnectProcessEnginePlugin" />
+        <bean class="org.operaton.extensions.connector.mail.MailConnectorPlugin">
+          <property name="configLocation" value="classpath:mail-config.properties" />
+        </bean>
+      </list>
+    </property>
+  </bean>
+</beans>

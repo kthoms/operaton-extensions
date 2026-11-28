@@ -1,0 +1,3 @@
+org.operaton.extensions.connector.mail.send.SendMailProvider
+org.operaton.extensions.connector.mail.poll.PollMailProvider
+org.operaton.extensions.connector.mail.delete.DeleteMailProvider

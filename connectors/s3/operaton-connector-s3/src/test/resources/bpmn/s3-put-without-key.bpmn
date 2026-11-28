@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_s3-put-without-key" targetNamespace="http://operaton.org/extensions/s3/test">
+  <bpmn:process id="s3-put-without-key" isExecutable="true" operaton:historyTimeToLive="P1D">
+    <bpmn:startEvent id="start"/>
+    <bpmn:serviceTask id="put" name="put">
+      <bpmn:extensionElements>
+        <operaton:connector>
+      <operaton:inputOutput>
+          <operaton:inputParameter name="content">x</operaton:inputParameter>
+        </operaton:inputOutput>
+          <operaton:connectorId>s3-put</operaton:connectorId>
+        </operaton:connector>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="f0" sourceRef="start" targetRef="put"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="put" targetRef="end"/>
+    <bpmn:endEvent id="end"/>
+  </bpmn:process>
+</bpmn:definitions>

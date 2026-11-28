@@ -1,0 +1,16 @@
+Operaton Process Test Coverage
+Copyright 2026 the Operaton Extensions contributors
+
+Licensed under the Apache License, Version 2.0.
+
+Third-party code
+================
+
+Ported from camunda-process-test-coverage
+  https://github.com/camunda-community-hub/camunda-process-test-coverage
+  Copyright (C) 2019 - 2024 Camunda
+  License: Apache-2.0
+  Files (translated from Kotlin to Java and adapted to Operaton):
+    internal/CoverageExecutionListener.java, internal/CoverageParseListener.java,
+    internal/CompensationCoverageHandler.java, model/ProcessModel.java,
+    ProcessTestCoverageExtension.java, ExcludeFromProcessCoverage.java

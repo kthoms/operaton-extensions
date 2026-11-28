@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    xmlns:operaton="http://operaton.org/schema/1.0/bpmn"
+    id="Definitions_fraud" targetNamespace="http://operaton.org/examples/fraud-check">
+  <bpmn:process id="fraud-check" name="Fraud check" isExecutable="true"
+      operaton:historyTimeToLive="P7D">
+    <bpmn:startEvent id="transactionReceived" name="Transaction received">
+      <bpmn:outgoing>flowToCheck</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="checkTransaction" name="Check transaction" operaton:type="external"
+        operaton:topic="fraud-check">
+      <bpmn:incoming>flowToCheck</bpmn:incoming>
+      <bpmn:outgoing>flowToApproved</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="fraudSuspectedBoundary" name="Fraud suspected" attachedToRef="checkTransaction">
+      <bpmn:outgoing>flowToBlocked</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="fraudDef" errorRef="Error_fraud"/>
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="transactionApproved" name="Transaction approved">
+      <bpmn:incoming>flowToApproved</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="transactionBlocked" name="Transaction blocked">
+      <bpmn:incoming>flowToBlocked</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flowToCheck" sourceRef="transactionReceived" targetRef="checkTransaction"/>
+    <bpmn:sequenceFlow id="flowToApproved" name="accepted" sourceRef="checkTransaction" targetRef="transactionApproved"/>
+    <bpmn:sequenceFlow id="flowToBlocked" name="transactionBlocked" sourceRef="fraudSuspectedBoundary"
+        targetRef="transactionBlocked"/>
+  </bpmn:process>
+  <bpmn:error id="Error_fraud" name="Fraud suspected" errorCode="FRAUD_SUSPECTED"/>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="fraud-check">
+      <bpmndi:BPMNShape id="transactionReceived_di" bpmnElement="transactionReceived">
+        <dc:Bounds x="152" y="102" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="checkTransaction_di" bpmnElement="checkTransaction">
+        <dc:Bounds x="250" y="80" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="transactionApproved_di" bpmnElement="transactionApproved">
+        <dc:Bounds x="432" y="102" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="transactionBlocked_di" bpmnElement="transactionBlocked">
+        <dc:Bounds x="432" y="222" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="fraudSuspectedBoundary_di" bpmnElement="fraudSuspectedBoundary">
+        <dc:Bounds x="292" y="142" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flowToCheck_di" bpmnElement="flowToCheck">
+        <di:waypoint x="188" y="120"/><di:waypoint x="250" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowToApproved_di" bpmnElement="flowToApproved">
+        <di:waypoint x="350" y="120"/><di:waypoint x="432" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flowToBlocked_di" bpmnElement="flowToBlocked">
+        <di:waypoint x="310" y="178"/><di:waypoint x="310" y="240"/><di:waypoint x="432" y="240"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

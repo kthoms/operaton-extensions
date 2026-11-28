@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" id="Definitions_loan" targetNamespace="http://operaton.org/examples/history-kafka">
+  <bpmn:process id="loan-application" name="Loan application" isExecutable="true" operaton:historyTimeToLive="P30D">
+    <bpmn:startEvent id="application-received" name="Application received">
+      <bpmn:outgoing>flow-to-check</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="check-credit" name="Check credit" operaton:delegateExpression="${creditCheck}">
+      <bpmn:incoming>flow-to-check</bpmn:incoming>
+      <bpmn:outgoing>flow-to-risk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="assess-risk" name="Risk and amount?" default="flow-needs-review">
+      <bpmn:incoming>flow-to-risk</bpmn:incoming>
+      <bpmn:outgoing>flow-high-risk</bpmn:outgoing>
+      <bpmn:outgoing>flow-auto-approve</bpmn:outgoing>
+      <bpmn:outgoing>flow-needs-review</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="review-application" name="Review application" operaton:candidateGroups="underwriters">
+      <bpmn:incoming>flow-needs-review</bpmn:incoming>
+      <bpmn:outgoing>flow-reviewed</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="review-decision" name="Approved by underwriter?" default="flow-review-rejected">
+      <bpmn:incoming>flow-reviewed</bpmn:incoming>
+      <bpmn:outgoing>flow-review-approved</bpmn:outgoing>
+      <bpmn:outgoing>flow-review-rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="approved" name="Loan approved">
+      <bpmn:incoming>flow-auto-approve</bpmn:incoming>
+      <bpmn:incoming>flow-review-approved</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="rejected" name="Loan rejected">
+      <bpmn:incoming>flow-high-risk</bpmn:incoming>
+      <bpmn:incoming>flow-review-rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow-to-check" sourceRef="application-received" targetRef="check-credit" />
+    <bpmn:sequenceFlow id="flow-to-risk" sourceRef="check-credit" targetRef="assess-risk" />
+    <bpmn:sequenceFlow id="flow-high-risk" name="High risk" sourceRef="assess-risk" targetRef="rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${risk == 'HIGH'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow-auto-approve" name="Low risk, up to 10000" sourceRef="assess-risk" targetRef="approved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${risk == 'LOW' &amp;&amp; amount &lt;= 10000}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow-needs-review" name="Needs review" sourceRef="assess-risk" targetRef="review-application" />
+    <bpmn:sequenceFlow id="flow-reviewed" sourceRef="review-application" targetRef="review-decision" />
+    <bpmn:sequenceFlow id="flow-review-approved" name="Approved" sourceRef="review-decision" targetRef="approved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow-review-rejected" name="Rejected" sourceRef="review-decision" targetRef="rejected" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="loan-application">
+      <bpmndi:BPMNShape id="application-received_di" bpmnElement="application-received">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="133" y="145" width="75" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="check-credit_di" bpmnElement="check-credit">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="assess-risk_di" bpmnElement="assess-risk" isMarkerVisible="true">
+        <dc:Bounds x="395" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="383" y="65" width="74" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="review-application_di" bpmnElement="review-application">
+        <dc:Bounds x="500" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="review-decision_di" bpmnElement="review-decision" isMarkerVisible="true">
+        <dc:Bounds x="655" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="640" y="65" width="80" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="approved_di" bpmnElement="approved">
+        <dc:Bounds x="802" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="783" y="145" width="75" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="rejected_di" bpmnElement="rejected">
+        <dc:Bounds x="802" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="784" y="305" width="73" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-to-check_di" bpmnElement="flow-to-check">
+        <di:waypoint x="188" y="120" /><di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-to-risk_di" bpmnElement="flow-to-risk">
+        <di:waypoint x="340" y="120" /><di:waypoint x="395" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-high-risk_di" bpmnElement="flow-high-risk">
+        <di:waypoint x="420" y="145" /><di:waypoint x="420" y="280" /><di:waypoint x="802" y="280" />
+        <bpmndi:BPMNLabel><dc:Bounds x="428" y="210" width="43" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-auto-approve_di" bpmnElement="flow-auto-approve">
+        <di:waypoint x="420" y="95" /><di:waypoint x="420" y="30" /><di:waypoint x="820" y="30" /><di:waypoint x="820" y="102" />
+        <bpmndi:BPMNLabel><dc:Bounds x="560" y="12" width="120" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-needs-review_di" bpmnElement="flow-needs-review">
+        <di:waypoint x="445" y="120" /><di:waypoint x="500" y="120" />
+        <bpmndi:BPMNLabel><dc:Bounds x="443" y="102" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-reviewed_di" bpmnElement="flow-reviewed">
+        <di:waypoint x="600" y="120" /><di:waypoint x="655" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-review-approved_di" bpmnElement="flow-review-approved">
+        <di:waypoint x="705" y="120" /><di:waypoint x="802" y="120" />
+        <bpmndi:BPMNLabel><dc:Bounds x="729" y="102" width="47" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-review-rejected_di" bpmnElement="flow-review-rejected">
+        <di:waypoint x="680" y="145" /><di:waypoint x="680" y="250" /><di:waypoint x="820" y="250" /><di:waypoint x="820" y="262" />
+        <bpmndi:BPMNLabel><dc:Bounds x="688" y="180" width="43" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

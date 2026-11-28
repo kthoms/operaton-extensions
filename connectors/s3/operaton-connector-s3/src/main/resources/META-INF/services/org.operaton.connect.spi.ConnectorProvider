@@ -1,0 +1,6 @@
+org.operaton.extensions.connector.s3.connector.S3PutConnectorProvider
+org.operaton.extensions.connector.s3.connector.S3GetConnectorProvider
+org.operaton.extensions.connector.s3.connector.S3ListConnectorProvider
+org.operaton.extensions.connector.s3.connector.S3DeleteConnectorProvider
+org.operaton.extensions.connector.s3.connector.S3CopyConnectorProvider
+org.operaton.extensions.connector.s3.connector.S3PresignConnectorProvider

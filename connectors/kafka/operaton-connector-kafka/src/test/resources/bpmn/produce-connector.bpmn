@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:operaton="http://operaton.org/schema/1.0/bpmn" targetNamespace="http://operaton.org/extensions/test">
+  <process id="produce-connector" isExecutable="true" operaton:historyTimeToLive="1">
+    <startEvent id="start"/>
+    <sequenceFlow id="f1" sourceRef="start" targetRef="send"/>
+    <serviceTask id="send" name="Publish event">
+      <extensionElements>
+        <operaton:connector>
+          <operaton:inputOutput>
+            <operaton:inputParameter name="topic">${topic}</operaton:inputParameter>
+            <operaton:inputParameter name="key">${execution.processBusinessKey}</operaton:inputParameter>
+            <operaton:inputParameter name="value">${payload}</operaton:inputParameter>
+          </operaton:inputOutput>
+          <operaton:connectorId>kafka-produce</operaton:connectorId>
+        </operaton:connector>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="f2" sourceRef="send" targetRef="end"/>
+    <endEvent id="end"/>
+  </process>
+</definitions>
