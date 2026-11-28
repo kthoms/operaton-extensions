@@ -14,13 +14,13 @@ port of [camunda-external-task-client-js](https://github.com/camunda/camunda-ext
 ## Installation
 
 ```bash
-npm install @operaton-extensions/external-task-client
+npm install @kthoms/operaton-external-task-client
 ```
 
 ## Usage
 
 ```ts
-import { BpmnError, Client, Variables } from "@operaton-extensions/external-task-client";
+import { BpmnError, Client, Variables } from "@kthoms/operaton-external-task-client";
 
 const client = new Client({ baseUrl: "http://localhost:8080/engine-rest", workerId: "shipper" });
 

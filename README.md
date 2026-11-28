@@ -28,7 +28,7 @@ Clients (other languages) are installed from their registry:
 
 | Language | Package |
 |---|---|
-| JavaScript/TypeScript | npm `@operaton-extensions/external-task-client` |
+| JavaScript/TypeScript | npm `@kthoms/operaton-external-task-client` |
 | Python | PyPI `operaton-external-task-client` |
 | Go | `go get github.com/kthoms/operaton-extensions/clients/go` |
 | Rust | crates.io `operaton-external-task-client` |

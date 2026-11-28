@@ -15,12 +15,7 @@
  */
 import { randomUUID } from "node:crypto";
 
-import {
-  BpmnError,
-  Client,
-  Variables,
-  consoleLogger,
-} from "@operaton-extensions/external-task-client";
+import { BpmnError, Client, Variables, consoleLogger } from "@kthoms/operaton-external-task-client";
 
 interface OrderVariables {
   orderId: string;
