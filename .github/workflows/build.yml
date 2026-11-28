@@ -39,6 +39,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: The catalog is up to date
+        run: python3 tools/generate-catalog.py --check
+
       - name: Compute the build matrices
         id: changes
         env:
