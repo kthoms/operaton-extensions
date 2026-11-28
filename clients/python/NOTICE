@@ -1,0 +1,20 @@
+Operaton External Task Client (Python)
+Copyright 2026 the Operaton Extensions contributors
+
+Licensed under the Apache License, Version 2.0.
+
+Third-party code
+================
+
+Parts of this package are ported from
+
+  camunda-external-task-client-python3
+  https://github.com/camunda-community-hub/camunda-external-task-client-python3
+  License: Apache-2.0 (copyright the camunda-community-hub contributors)
+
+namely the design of the variable handling, the external task model, the task result semantics
+(retries derived from the task's retries) and the fetch-and-lock / complete / failure / BPMN error
+request formats, in these files of src/operaton_external_task_client/: variables.py, task.py,
+service.py, client.py, aio.py, _api.py, _protocol.py, _outcome.py. The code was rewritten and
+modernised (httpx instead of requests, typed API, asyncio support, thread pool worker, Camunda
+names and endpoints changed to Operaton's). Each ported file carries a "Ported from" line.

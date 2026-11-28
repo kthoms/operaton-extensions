@@ -29,3 +29,12 @@ license, see docs/conventions/licensing-and-attribution.md.
   https://github.com/cibseven/cibseven/tree/main/connect/ai-agent
   Apache-2.0, Copyright CIB software GmbH and/or licensed to CIB software GmbH
   Used in: connectors/ai-llm (AgentLoop, LongText)
+Each port of code from another project is listed here with its origin and
+license, see docs/conventions/licensing-and-attribution.md.
+
+camunda-external-task-client-python3
+  https://github.com/camunda-community-hub/camunda-external-task-client-python3
+  License: Apache-2.0
+  Files: clients/python/src/operaton_external_task_client/ (variables.py, task.py,
+  service.py, client.py, aio.py, _api.py, _protocol.py, _outcome.py), ported and
+  modernised for Operaton.
